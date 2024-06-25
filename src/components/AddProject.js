@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const AddProject = ({ addProject }) => {
+const AddProject = ({ addProject, teamMembers }) => {
   const navigate = useNavigate();
   const [project, setProject] = useState({
     name: '',
@@ -9,7 +9,7 @@ const AddProject = ({ addProject }) => {
     endDate: '',
     originalEstimate: '',
     remainingWork: '',
-    team: ''
+    selectedTeamMembers: []
   });
 
   const handleChange = (e) => {
@@ -17,9 +17,18 @@ const AddProject = ({ addProject }) => {
     setProject({ ...project, [name]: value });
   };
 
+  const handleSelectChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
+    setProject({ ...project, selectedTeamMembers: selectedOptions });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     addProject(project);
+    navigate('/');
+  };
+
+  const handleCancel = () => {
     navigate('/');
   };
 
@@ -53,11 +62,24 @@ const AddProject = ({ addProject }) => {
         </label>
         <br />
         <label>
-          Team:
-          <input type="text" name="team" value={project.team} onChange={handleChange} required />
+          Project Members:
+          <select
+            name="selectedTeamMembers"
+            multiple
+            value={project.selectedTeamMembers}
+            onChange={handleSelectChange}
+            required
+          >
+            {teamMembers && teamMembers.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
+              </option>
+            ))}
+          </select>
         </label>
         <br />
         <button type="submit">Add Project</button>
+        <button type="button" onClick={handleCancel}>Cancel</button>
       </form>
     </div>
   );
