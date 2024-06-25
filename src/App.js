@@ -5,6 +5,7 @@ import ProjectTable from './components/ProjectTable';
 import AddProject from './components/AddProject';
 import TeamTable from './components/TeamTable';
 import AddTeamMember from './components/AddTeamMember';
+import EditTeamMember from './components/EditTeamMember'; // Importar o novo componente EditTeamMember
 import { Link } from 'react-router-dom';
 
 const App = () => {
@@ -33,6 +34,15 @@ const App = () => {
   // Função para adicionar membro da equipe
   const addTeamMember = (member) => {
     const updatedMembers = [...teamMembers, member];
+    setTeamMembers(updatedMembers);
+    localStorage.setItem('teamMembers', JSON.stringify(updatedMembers));
+  };
+
+  // Função para editar membro da equipe
+  const editTeamMember = (updatedMember) => {
+    const updatedMembers = teamMembers.map(member =>
+      member.id === updatedMember.id ? { ...updatedMember } : member
+    );
     setTeamMembers(updatedMembers);
     localStorage.setItem('teamMembers', JSON.stringify(updatedMembers));
   };
@@ -79,6 +89,10 @@ const App = () => {
         <Route
           path="/add-team-member"
           element={<AddTeamMember addTeamMember={addTeamMember} />}
+        />
+        <Route
+          path="/edit-team-member/:id"
+          element={<EditTeamMember teamMembers={teamMembers} editTeamMember={editTeamMember} />}
         />
       </Routes>
     </div>

@@ -1,24 +1,31 @@
 // components/TeamTable.js
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const TeamTable = ({ teamMembers }) => {
   return (
     <div>
-      <h2>Team Management</h2> {/* Título adicionado */}
+      <h1>Team Members</h1>
       <table>
         <thead>
           <tr>
             <th>ID</th>
             <th>Name</th>
             <th>Vacations</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {teamMembers.map((member, index) => (
-            <tr key={index}>
-              <td>{index + 1}</td> {/* ID gerado automaticamente */}
+          {teamMembers.map((member) => (
+            <tr key={member.id}>
+              <td>{member.id}</td>
               <td>{member.name}</td>
               <td>{member.vacations}</td>
+              <td>
+                <Link to={`/edit-team-member/${member.id}`}>
+                  <button>Edit</button>
+                </Link>
+              </td>
             </tr>
           ))}
         </tbody>
