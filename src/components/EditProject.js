@@ -1,60 +1,49 @@
-// components/EditProject.js
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const EditProject = ({ editProject }) => {
-  const { id } = useParams();
+const EditProject = ({ projects, editProject, teamMembers }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  // Estado local para armazenar os dados do projeto em edição
+  // Estado local para controlar o formulário de edição
   const [project, setProject] = useState({
     name: '',
     startDate: '',
     endDate: '',
     originalEstimate: '',
     remainingWork: '',
-    selectedTeamMembers: []
+    allocatedMembers: []
   });
 
-  // Efeito para carregar os dados do projeto ao montar o componente
+  // Carregar os detalhes do projeto com base no ID fornecido
   useEffect(() => {
-    const projects = JSON.parse(localStorage.getItem('projects')) || [];
-    const selectedProject = projects.find((p) => p.id === parseInt(id));
+    const selectedProject = projects.find(project => project.id === parseInt(id));
     if (selectedProject) {
-      setProject({
-        name: selectedProject.name,
-        startDate: selectedProject.startDate,
-        endDate: selectedProject.endDate,
-        originalEstimate: selectedProject.originalEstimate,
-        remainingWork: selectedProject.remainingWork,
-        selectedTeamMembers: selectedProject.selectedTeamMembers || []
-      });
+      setProject(selectedProject);
     }
-  }, [id]);
+  }, [id, projects]);
 
+  // Manipulador de alteração de entrada
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProject({ ...project, [name]: value });
   };
 
-  const handleSelectChange = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
-    setProject({ ...project, selectedTeamMembers: selectedOptions });
-  };
-
+  // Manipulador de envio do formulário
   const handleSubmit = (e) => {
     e.preventDefault();
-    editProject(parseInt(id), project); // Editar projeto com os novos dados
-    navigate('/'); // Redirecionar de volta para a página inicial
+    editProject(project.id, project.name, project.allocatedMembers);
+    navigate('/');
   };
 
+  // Manipulador de cancelamento
   const handleCancel = () => {
     navigate('/');
   };
 
   return (
     <div>
-      <h1>Edit Project</h1>
+      <h2>Edit Project</h2>
       <form onSubmit={handleSubmit}>
         <label>
           Name:
@@ -82,23 +71,52 @@ const EditProject = ({ editProject }) => {
         </label>
         <br />
         <label>
-          Project Members:
-          <select
-            name="selectedTeamMembers"
-            multiple
-            value={project.selectedTeamMembers}
-            onChange={handleSelectChange}
-            required
-          >
-            {project.selectedTeamMembers.map((memberId) => (
-              <option key={memberId} value={memberId}>
-                Member {memberId} {/* Aqui deve exibir o nome do membro com base no ID */}
-              </option>
-            ))}
-          </select>
+          Allocated Members:
         </label>
         <br />
-        <button type="submit">Update Project</button>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Allocated Hours</th>
+            </tr>
+          </thead>
+          <tbody>
+          {project.allocatedMembers && project.allocatedMembers.map((allocation) => {
+  // Verifica se allocation é definido antes de continuar
+  if (!allocation) return null;
+
+  const member = teamMembers.find(member => member.id === allocation.memberId);
+  // Verifica se member é definido antes de continuar
+  if (!member) return null;
+
+  return (
+    <tr key={allocation.memberId}>
+      <td>{member.name}</td>
+      <td>
+        <input
+          type="number"
+          min="0"
+          value={allocation.allocatedHours}
+          onChange={(e) => {
+            const updatedAllocations = project.allocatedMembers.map(mem =>
+              mem.memberId === allocation.memberId
+                ? { ...mem, allocatedHours: parseInt(e.target.value) }
+                : mem
+            );
+            setProject({ ...project, allocatedMembers: updatedAllocations });
+          }}
+          required
+        />
+      </td>
+    </tr>
+  );
+})}
+
+          </tbody>
+        </table>
+        <br />
+        <button type="submit">Save Changes</button>
         <button type="button" onClick={handleCancel}>Cancel</button>
       </form>
     </div>

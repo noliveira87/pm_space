@@ -74,7 +74,8 @@ const App = () => {
               <ProjectTable
                 projects={projects}
                 onDeleteProject={handleDeleteProject}
-                onEditProject={editProject}
+                onEditProject={EditProject}
+                teamMembers={teamMembers}
               />
               <TeamTable teamMembers={teamMembers} />
               <Link to="/add-team-member">

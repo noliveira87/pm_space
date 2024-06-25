@@ -3,21 +3,27 @@ import { Link } from 'react-router-dom';
 
 const AddProject = ({ addProject, teamMembers }) => {
   const [name, setName] = useState('');
-  const [memberId, setMemberId] = useState('');
-  const [allocatedHours, setHours] = useState('');
+  const [memberAllocations, setMemberAllocations] = useState({});
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Filtrar membros alocados com allocatedHours > 0
+    const allocatedMembers = Object.entries(memberAllocations)
+      .filter(([memberId, hours]) => parseInt(hours) > 0)
+      .map(([memberId, hours]) => ({
+        memberId: parseInt(memberId),
+        allocatedHours: parseInt(hours),
+      }));
+
     const newProject = {
       id: generateProjectId(), // Gerar novo ID de projeto
       name,
-      memberId,
-      allocatedHours: parseInt(allocatedHours), // Converter horas para inteiro
+      allocatedMembers,
     };
     addProject(newProject);
     setName('');
-    setMemberId('');
-    setHours('');
+    setMemberAllocations({});
   };
 
   const generateProjectId = () => {
@@ -25,6 +31,10 @@ const AddProject = ({ addProject, teamMembers }) => {
     const storedProjects = JSON.parse(localStorage.getItem('projects')) || [];
     const highestId = storedProjects.reduce((maxId, project) => Math.max(maxId, project.id), 0);
     return highestId + 1; // Incrementar o maior ID encontrado
+  };
+
+  const handleAllocationChange = (memberId, hours) => {
+    setMemberAllocations({ ...memberAllocations, [memberId]: hours });
   };
 
   return (
@@ -41,27 +51,19 @@ const AddProject = ({ addProject, teamMembers }) => {
           />
         </label>
         <br />
-        <label>
-          Select Team Member:
-          <select value={memberId} onChange={(e) => setMemberId(e.target.value)} required>
-            <option value="">Select a member</option>
-            {teamMembers.map((member) => (
-              <option key={member.id} value={member.id}>
-                {member.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <label>Members Allocation:</label>
         <br />
-        <label>
-          Allocated Daily Hours:
-          <input
-            type="number"
-            value={allocatedHours}
-            onChange={(e) => setHours(e.target.value)}
-            required
-          />
-        </label>
+        {teamMembers.map((member) => (
+          <div key={member.id}>
+            <span>{member.name}</span>
+            <input
+              type="number"
+              min="0"
+              value={memberAllocations[member.id] || ''}
+              onChange={(e) => handleAllocationChange(member.id, e.target.value)}
+            />
+          </div>
+        ))}
         <br />
         <button type="submit">Add Project</button>
         <Link to="/">
