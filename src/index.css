@@ -48,6 +48,7 @@ button:hover {
 /* Estilos para o botão de deletar */
 button.delete-button {
   background-color: #ff4d4d;
+  margin-right: 10px; /* Adiciona espaço entre os botões */
 }
 
 button.delete-button:hover {
