@@ -1,4 +1,3 @@
-// src/components/ProjectTable.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -30,7 +29,7 @@ const ProjectTable = ({ projects, onDeleteProject, onEditProject }) => {
               <td>{project.originalEstimate}</td>
               <td>{project.remainingWork}</td>
               <td>
-                <button onClick={() => handleDelete(project.id)}>Delete</button>
+                <button className="delete-button" onClick={() => handleDelete(project.id)}>Delete</button>
                 <button onClick={() => onEditProject(project.id, "New Name")}>Edit</button>
               </td>
             </tr>

@@ -45,6 +45,15 @@ button:hover {
   background-color: #0056b3;
 }
 
+/* Estilos para o botão de deletar */
+button.delete-button {
+  background-color: #ff4d4d;
+}
+
+button.delete-button:hover {
+  background-color: #cc0000;
+}
+
 /* Estilos para o formulário de adição de projetos */
 form {
   display: flex;
