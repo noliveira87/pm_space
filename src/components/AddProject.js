@@ -1,76 +1,51 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const AddProject = ({ addProject, teamMembers }) => {
-  const navigate = useNavigate();
-  const [project, setProject] = useState({
-    name: '',
-    startDate: '',
-    endDate: '',
-    originalEstimate: '',
-    remainingWork: '',
-    selectedTeamMembers: []
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProject({ ...project, [name]: value });
-  };
-
-  const handleSelectChange = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
-    setProject({ ...project, selectedTeamMembers: selectedOptions });
-  };
+  const [name, setName] = useState('');
+  const [memberId, setMemberId] = useState('');
+  const [allocatedHours, setHours] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addProject(project);
-    navigate('/');
+    const newProject = {
+      id: generateProjectId(), // Gerar novo ID de projeto
+      name,
+      memberId,
+      allocatedHours: parseInt(allocatedHours), // Converter horas para inteiro
+    };
+    addProject(newProject);
+    setName('');
+    setMemberId('');
+    setHours('');
   };
 
-  const handleCancel = () => {
-    navigate('/');
+  const generateProjectId = () => {
+    // Lógica para gerar o próximo ID de projeto
+    const storedProjects = JSON.parse(localStorage.getItem('projects')) || [];
+    const highestId = storedProjects.reduce((maxId, project) => Math.max(maxId, project.id), 0);
+    return highestId + 1; // Incrementar o maior ID encontrado
   };
 
   return (
     <div>
-      <h1>Add Project</h1>
+      <h2>Add Project</h2>
       <form onSubmit={handleSubmit}>
         <label>
-          Name:
-          <input type="text" name="name" value={project.name} onChange={handleChange} required />
-        </label>
-        <br />
-        <label>
-          Start Date:
-          <input type="date" name="startDate" value={project.startDate} onChange={handleChange} required />
-        </label>
-        <br />
-        <label>
-          End Date:
-          <input type="date" name="endDate" value={project.endDate} onChange={handleChange} required />
-        </label>
-        <br />
-        <label>
-          Original Estimate:
-          <input type="number" name="originalEstimate" value={project.originalEstimate} onChange={handleChange} required />
-        </label>
-        <br />
-        <label>
-          Remaining Work:
-          <input type="number" name="remainingWork" value={project.remainingWork} onChange={handleChange} required />
-        </label>
-        <br />
-        <label>
-          Project Members:
-          <select
-            name="selectedTeamMembers"
-            multiple
-            value={project.selectedTeamMembers}
-            onChange={handleSelectChange}
+          Project Name:
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
-          >
-            {teamMembers && teamMembers.map((member) => (
+          />
+        </label>
+        <br />
+        <label>
+          Select Team Member:
+          <select value={memberId} onChange={(e) => setMemberId(e.target.value)} required>
+            <option value="">Select a member</option>
+            {teamMembers.map((member) => (
               <option key={member.id} value={member.id}>
                 {member.name}
               </option>
@@ -78,8 +53,20 @@ const AddProject = ({ addProject, teamMembers }) => {
           </select>
         </label>
         <br />
+        <label>
+          Allocated Daily Hours:
+          <input
+            type="number"
+            value={allocatedHours}
+            onChange={(e) => setHours(e.target.value)}
+            required
+          />
+        </label>
+        <br />
         <button type="submit">Add Project</button>
-        <button type="button" onClick={handleCancel}>Cancel</button>
+        <Link to="/">
+          <button>Cancel</button>
+        </Link>
       </form>
     </div>
   );

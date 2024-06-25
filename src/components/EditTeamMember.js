@@ -7,9 +7,9 @@ const EditTeamMember = ({ editTeamMember }) => {
 
   // Estado local para controlar o formulário de edição
   const [member, setMember] = useState({
-    id: '',
+    id: 0, // Inicializar com um valor padrão
     name: '',
-    vacationDays: '', // Corrigido para vacationDays
+    vacationDays: '',
   });
 
   // Carregar os detalhes do membro com base no ID fornecido
@@ -34,7 +34,7 @@ const EditTeamMember = ({ editTeamMember }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validar se vacationDays é um número válido antes de prosseguir
+    // Validar se vacationsDays é um número válido antes de prosseguir
     const vacationsNumber = parseInt(member.vacationDays);
     if (isNaN(vacationsNumber) || vacationsNumber < 0) {
       alert('Please enter a valid number of vacations.');
@@ -71,7 +71,7 @@ const EditTeamMember = ({ editTeamMember }) => {
         <br />
         <label>
           Vacations:
-          <input type="text" name="vacationDays" value={member.vacationDays} onChange={handleChange} required /> {/* Corrigido para vacationDays */}
+          <input type="text" name="vacationsDays" value={member.vacationDays} onChange={handleChange} required />
         </label>
         <br />
         <button type="submit">Save Changes</button>
