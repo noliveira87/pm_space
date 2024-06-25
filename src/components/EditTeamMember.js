@@ -1,8 +1,7 @@
-// components/EditTeamMember.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const EditTeamMember = ({ teamMembers, editTeamMember }) => {
+const EditTeamMember = ({ editTeamMember }) => {
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -10,16 +9,20 @@ const EditTeamMember = ({ teamMembers, editTeamMember }) => {
   const [member, setMember] = useState({
     id: '',
     name: '',
-    vacations: ''
+    vacationDays: '', // Corrigido para vacationDays
   });
 
   // Carregar os detalhes do membro com base no ID fornecido
   useEffect(() => {
-    const selectedMember = teamMembers.find(member => member.id === parseInt(id));
-    if (selectedMember) {
-      setMember(selectedMember);
+    const storedData = localStorage.getItem('teamMembers');
+    if (storedData) {
+      const teamMembers = JSON.parse(storedData);
+      const selectedMember = teamMembers.find(member => member.id === parseInt(id));
+      if (selectedMember) {
+        setMember(selectedMember);
+      }
     }
-  }, [id, teamMembers]);
+  }, [id]);
 
   // Manipulador de alteração de entrada
   const handleChange = (e) => {
@@ -30,7 +33,25 @@ const EditTeamMember = ({ teamMembers, editTeamMember }) => {
   // Manipulador de envio do formulário
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validar se vacationDays é um número válido antes de prosseguir
+    const vacationsNumber = parseInt(member.vacationDays);
+    if (isNaN(vacationsNumber) || vacationsNumber < 0) {
+      alert('Please enter a valid number of vacations.');
+      return;
+    }
+
+    // Atualizar o membro da equipe
     editTeamMember(member);
+
+    // Atualizar local storage após a edição
+    const storedData = localStorage.getItem('teamMembers');
+    if (storedData) {
+      const teamMembers = JSON.parse(storedData);
+      const updatedMembers = teamMembers.map(mem => (mem.id === member.id ? member : mem));
+      localStorage.setItem('teamMembers', JSON.stringify(updatedMembers));
+    }
+
     navigate('/');
   };
 
@@ -50,7 +71,7 @@ const EditTeamMember = ({ teamMembers, editTeamMember }) => {
         <br />
         <label>
           Vacations:
-          <input type="text" name="vacations" value={member.vacations} onChange={handleChange} required />
+          <input type="text" name="vacationDays" value={member.vacationDays} onChange={handleChange} required /> {/* Corrigido para vacationDays */}
         </label>
         <br />
         <button type="submit">Save Changes</button>

@@ -1,4 +1,3 @@
-// components/TeamTable.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -20,7 +19,7 @@ const TeamTable = ({ teamMembers }) => {
             <tr key={member.id}>
               <td>{member.id}</td>
               <td>{member.name}</td>
-              <td>{member.vacations}</td>
+              <td>{member.vacationDays}</td>
               <td>
                 <Link to={`/edit-team-member/${member.id}`}>
                   <button>Edit</button>
