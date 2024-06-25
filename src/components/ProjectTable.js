@@ -1,7 +1,12 @@
+// src/components/ProjectTable.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const ProjectTable = ({ projects }) => {
+const ProjectTable = ({ projects, onDeleteProject, onEditProject }) => {
+  const handleDelete = (id) => {
+    onDeleteProject(id);
+  };
+
   return (
     <div>
       <h1>Project Management</h1>
@@ -13,16 +18,21 @@ const ProjectTable = ({ projects }) => {
             <th>End Date</th>
             <th>Original Estimate</th>
             <th>Remaining Work</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {projects.map((project, index) => (
-            <tr key={index}>
+          {projects.map((project) => (
+            <tr key={project.id}>
               <td>{project.name}</td>
               <td>{project.startDate}</td>
               <td>{project.endDate}</td>
               <td>{project.originalEstimate}</td>
               <td>{project.remainingWork}</td>
+              <td>
+                <button onClick={() => handleDelete(project.id)}>Delete</button>
+                <button onClick={() => onEditProject(project.id, "New Name")}>Edit</button>
+              </td>
             </tr>
           ))}
         </tbody>
