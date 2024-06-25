@@ -5,6 +5,7 @@ import ProjectTable from './components/ProjectTable';
 import AddProject from './components/AddProject';
 import TeamTable from './components/TeamTable';
 import AddTeamMember from './components/AddTeamMember';
+import EditProject from './components/EditProject'; // Importar o novo componente EditProject
 import EditTeamMember from './components/EditTeamMember'; // Importar o novo componente EditTeamMember
 import { Link } from 'react-router-dom';
 
@@ -27,6 +28,15 @@ const App = () => {
   // Função para adicionar projeto
   const addProject = (project) => {
     const updatedProjects = [...projects, project];
+    setProjects(updatedProjects);
+    localStorage.setItem('projects', JSON.stringify(updatedProjects));
+  };
+
+  // Função para editar projeto
+  const editProject = (id, newName) => {
+    const updatedProjects = projects.map((project) =>
+      project.id === id ? { ...project, name: newName } : project
+    );
     setProjects(updatedProjects);
     localStorage.setItem('projects', JSON.stringify(updatedProjects));
   };
@@ -54,15 +64,6 @@ const App = () => {
     localStorage.setItem('projects', JSON.stringify(updatedProjects));
   };
 
-  // Função para editar projeto
-  const handleEditProject = (id, newName) => {
-    const updatedProjects = projects.map((project) =>
-      project.id === id ? { ...project, name: newName } : project
-    );
-    setProjects(updatedProjects);
-    localStorage.setItem('projects', JSON.stringify(updatedProjects));
-  };
-
   return (
     <div>
       <Routes>
@@ -73,7 +74,7 @@ const App = () => {
               <ProjectTable
                 projects={projects}
                 onDeleteProject={handleDeleteProject}
-                onEditProject={handleEditProject}
+                onEditProject={editProject}
               />
               <TeamTable teamMembers={teamMembers} />
               <Link to="/add-team-member">
@@ -89,6 +90,10 @@ const App = () => {
         <Route
           path="/add-team-member"
           element={<AddTeamMember addTeamMember={addTeamMember} />}
+        />
+        <Route
+          path="/edit-project/:id"
+          element={<EditProject projects={projects} editProject={editProject} />}
         />
         <Route
           path="/edit-team-member/:id"

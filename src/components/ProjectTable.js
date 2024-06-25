@@ -9,7 +9,7 @@ const ProjectTable = ({ projects, onDeleteProject, onEditProject }) => {
 
   return (
     <div>
-      <h2>Project Management</h2> {/* Título adicionado */}
+      <h1>Project Management</h1>
       <table>
         <thead>
           <tr>
@@ -30,7 +30,9 @@ const ProjectTable = ({ projects, onDeleteProject, onEditProject }) => {
               <td>{project.originalEstimate}</td>
               <td>{project.remainingWork}</td>
               <td>
-                <button onClick={() => onEditProject(project.id, "New Name")}>Edit</button>
+                <Link to={`/edit-project/${project.id}`}>
+                  <button>Edit</button>
+                </Link>
                 <button className="delete-button" onClick={() => handleDelete(project.id)}>Delete</button>
               </td>
             </tr>
