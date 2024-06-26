@@ -1,12 +1,11 @@
-// src/App.js
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import ProjectTable from './components/ProjectTable';
 import AddProject from './components/AddProject';
 import TeamTable from './components/TeamTable';
 import AddTeamMember from './components/AddTeamMember';
-import EditProject from './components/EditProject'; // Importar o novo componente EditProject
-import EditTeamMember from './components/EditTeamMember'; // Importar o novo componente EditTeamMember
+import EditProject from './components/EditProject';
+import EditTeamMember from './components/EditTeamMember';
 import { Link } from 'react-router-dom';
 
 const App = () => {
@@ -33,7 +32,7 @@ const App = () => {
   };
 
   // Função para editar projeto
-  const editProject = (id, newName) => {
+  const handleEditProject = (id, newName) => {
     const updatedProjects = projects.map((project) =>
       project.id === id ? { ...project, name: newName } : project
     );
@@ -74,7 +73,7 @@ const App = () => {
               <ProjectTable
                 projects={projects}
                 onDeleteProject={handleDeleteProject}
-                onEditProject={EditProject}
+                onEditProject={handleEditProject}
                 teamMembers={teamMembers}
               />
               <TeamTable teamMembers={teamMembers} />
@@ -94,7 +93,7 @@ const App = () => {
         />
         <Route
           path="/edit-project/:id"
-          element={<EditProject projects={projects} editProject={editProject} />}
+          element={<EditProject projects={projects} editProject={handleEditProject} />}
         />
         <Route
           path="/edit-team-member/:id"
