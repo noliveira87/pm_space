@@ -1,67 +1,100 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import apiConfig from '../../config/apiConfig'; // Certifique-se de importar sua configuração de API aqui
-import { useHistory } from 'react-router-dom'; // Importe useHistory para navegação
+import { useHistory } from 'react-router-dom';
+import apiConfig from '../../config/apiConfig';
 
-const AddTeamMember = () => {
-  const [memberData, setMemberData] = useState({
+const AddProject = () => {
+  const history = useHistory();
+
+  const [projectData, setProjectData] = useState({
     name: '',
-    role: '',
-    vacationDays: ''
+    startDate: '',
+    endDate: '',
+    originalEstimate: '',
+    remainingWork: '',
+    allocatedMembers: []
   });
-
-  const history = useHistory(); // Use useHistory para navegar
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await axios.post(`${apiConfig.baseUrl}${apiConfig.endpoints.teamMembers}`, memberData);
-      const memberId = response.data.id;
-      alert(`Team member ${memberId} added successfully!`);
-      // Limpar os campos após o sucesso
-      setMemberData({
-        name: '',
-        role: '',
-        vacationDays: ''
-      });
-      // Navegar de volta para a página inicial após adicionar o membro
-      history.push('/');
-    } catch (error) {
-      console.error('Error adding team member:', error);
-      alert('Failed to add team member. Please try again later.');
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setMemberData({ ...memberData, [name]: value });
+    setProjectData({ ...projectData, [name]: value });
   };
 
-  console.log(memberData); // Adicione este console.log para depuração
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`, projectData);
+      alert('Project added successfully!');
+      history.push('/');
+    } catch (error) {
+      console.error('Error adding project:', error);
+      alert('Failed to add project. Please try again later.');
+    }
+  };
 
   return (
     <div>
-      <h2>Add Team Member</h2>
+      <h2>Add Project</h2>
       <form onSubmit={handleSubmit}>
         <label>
           Name:
-          <input type="text" name="name" value={memberData.name} onChange={handleChange} required />
-        </label>
-        <label>
-          Role:
-          <input type="text" name="role" value={memberData.role} onChange={handleChange} required />
-        </label>  
-        <br />
-        <label>
-          Vacation Days:
-          <input type="number" name="vacationDays" value={memberData.vacationDays} onChange={handleChange} required />
+          <input
+            type="text"
+            name="name"
+            value={projectData.name}
+            onChange={handleChange}
+            required
+          />
         </label>
         <br />
-        <button type="submit">Add Member</button>
+        <label>
+          Start Date:
+          <input
+            type="date"
+            name="startDate"
+            value={projectData.startDate}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <br />
+        <label>
+          End Date:
+          <input
+            type="date"
+            name="endDate"
+            value={projectData.endDate}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <br />
+        <label>
+          Original Estimate:
+          <input
+            type="number"
+            name="originalEstimate"
+            value={projectData.originalEstimate}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <br />
+        <label>
+          Remaining Work:
+          <input
+            type="number"
+            name="remainingWork"
+            value={projectData.remainingWork}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <br />
+        <button type="submit">Add Project</button>
       </form>
     </div>
   );
 };
 
-export default AddTeamMember;
+export default AddProject;
