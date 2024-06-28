@@ -7,6 +7,14 @@ import TeamTable from './components/TeamMembers/TeamTable';
 import AddTeamMember from './components/TeamMembers/AddTeamMember';
 import EditTeamMember from './components/TeamMembers/EditTeamMember';
 
+const AddProjectButton = () => {
+  return (
+    <Link to="/add-project">
+      <button>Add Project</button>
+    </Link>
+  );
+};
+
 const AddMemberButton = () => {
   return (
     <Link to="/add-team-member">
@@ -23,6 +31,7 @@ const App = () => {
           <Route exact path="/">
             <h2>Projects</h2>
             <ProjectTable />
+            <AddProjectButton />
             <h2>Team Members</h2>
             <TeamTable />
             <AddMemberButton />
