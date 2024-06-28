@@ -27,6 +27,11 @@ const ProjectTable = () => {
   }, []);
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this project?');
+    if (!confirmDelete) {
+      return; // Cancel deletion if user clicks cancel in the confirmation dialog
+    }
+
     try {
       await axios.delete(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}/${id}`);
       setProjects(projects.filter(project => project.id !== id));
