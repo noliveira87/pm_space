@@ -6,11 +6,12 @@ import EditProject from './components/Projects/EditProject';
 import TeamTable from './components/TeamMembers/TeamTable';
 import AddTeamMember from './components/TeamMembers/AddTeamMember';
 import EditTeamMember from './components/TeamMembers/EditTeamMember';
+import './App.css'; // Importando o arquivo CSS para estilização
 
 const AddProjectButton = () => {
   return (
     <Link to="/add-project">
-      <button>Add Project</button>
+      <button className="add-project-button">Add Project</button>
     </Link>
   );
 };
@@ -18,7 +19,7 @@ const AddProjectButton = () => {
 const AddMemberButton = () => {
   return (
     <Link to="/add-team-member">
-      <button>Add New Member</button>
+      <button className="add-member-button">Add New Member</button>
     </Link>
   );
 };
@@ -26,13 +27,17 @@ const AddMemberButton = () => {
 const App = () => {
   return (
     <Router>
-      <div>
+      <div className="container">
         <Switch>
           <Route exact path="/">
-            <ProjectTable />
-            <AddProjectButton />
-            <TeamTable />
-            <AddMemberButton />
+            <div className="section">
+              <ProjectTable />
+              <AddProjectButton />
+            </div>
+            <div className="section">
+              <TeamTable />
+              <AddMemberButton />
+            </div>
           </Route>
           <Route path="/add-project" component={AddProject} />
           <Route path="/edit-project/:id" component={EditProject} />
