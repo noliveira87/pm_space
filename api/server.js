@@ -70,6 +70,31 @@ app.post('/projects', async (req, res) => {
   }
 });
 
+// Endpoint para atualizar projeto
+app.put('/projects/:id', async (req, res) => {
+  const projectId = req.params.id;
+  const { name, start_date, end_date, original_estimate, remaining_work } = req.body;
+
+  try {
+    // Verificar se o projeto existe
+    const checkProject = await db.query('SELECT * FROM projects WHERE id = $1', [projectId]);
+    if (checkProject.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Atualizar o projeto no banco de dados
+    const result = await db.query(
+      'UPDATE projects SET name = $1, start_date = $2, end_date = $3, original_estimate = $4, remaining_work = $5 WHERE id = $6 RETURNING *',
+      [name, start_date, end_date, original_estimate, remaining_work, projectId]
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating project:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Endpoints para membros da equipe
 app.get('/team_members', async (req, res) => {
   try {

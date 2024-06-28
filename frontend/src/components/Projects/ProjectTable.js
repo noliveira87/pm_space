@@ -1,24 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { fetchProjects } from '../../api/api';
+import axios from 'axios';
+import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import apiConfig from '../../config/apiConfig';
 
 const ProjectTable = () => {
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-    const getProjects = async () => {
+    const fetchProjects = async () => {
       try {
-        const data = await fetchProjects();
-        setProjects(data);
+        const response = await axios.get(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`);
+        setProjects(response.data);
       } catch (error) {
         console.error('Error fetching projects:', error);
       }
     };
 
-    getProjects();
+    fetchProjects();
   }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}/${id}`);
+      setProjects(projects.filter(project => project.id !== id));
+    } catch (error) {
+      console.error('Error deleting project:', error);
+    }
+  };
 
   return (
     <div>
+      <h2>Projects</h2>
       <table>
         <thead>
           <tr>
@@ -28,6 +42,7 @@ const ProjectTable = () => {
             <th>End Date</th>
             <th>Original Estimate</th>
             <th>Remaining Work</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -39,6 +54,16 @@ const ProjectTable = () => {
               <td>{project.end_date}</td>
               <td>{project.original_estimate}</td>
               <td>{project.remaining_work}</td>
+              <td>
+                <Link to={`/edit-project/${project.id}`}>
+                  <button>
+                    <FontAwesomeIcon icon={faEdit} />
+                  </button>
+                </Link>
+                <button onClick={() => handleDelete(project.id)}>
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

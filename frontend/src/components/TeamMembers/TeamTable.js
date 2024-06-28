@@ -3,55 +3,60 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import apiConfig from '../../config/apiConfig';
 
-const TeamTable = () => {
-  const [teamMembers, setTeamMembers] = useState([]);
+const ProjectTable = () => {
+  const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-    const fetchTeamMembers = async () => {
+    const fetchProjects = async () => {
       try {
-        const response = await axios.get(`${apiConfig.baseUrl}${apiConfig.endpoints.teamMembers}`);
-        setTeamMembers(response.data);
+        const response = await axios.get(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`);
+        setProjects(response.data);
       } catch (error) {
-        console.error('Error fetching team members:', error);
+        console.error('Error fetching projects:', error);
       }
     };
 
-    fetchTeamMembers();
+    fetchProjects();
   }, []);
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${apiConfig.baseUrl}${apiConfig.endpoints.teamMembers}/${id}`);
-      setTeamMembers(teamMembers.filter(member => member.id !== id));
+      await axios.delete(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}/${id}`);
+      setProjects(projects.filter(project => project.id !== id));
     } catch (error) {
-      console.error('Error deleting team member:', error);
+      console.error('Error deleting project:', error);
     }
   };
 
   return (
     <div>
+      <h2>Projects</h2>
       <table>
         <thead>
           <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Role</th>
-            <th>Vacation Days</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Original Estimate</th>
+            <th>Remaining Work</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {teamMembers.map((member) => (
-            <tr key={member.id}>
-              <td>{member.id}</td>
-              <td>{member.name}</td>
-              <td>{member.role}</td>
-              <td>{member.vacation_days}</td>
+          {projects.map((project) => (
+            <tr key={project.id}>
+              <td>{project.id}</td>
+              <td>{project.name}</td>
+              <td>{project.start_date}</td>
+              <td>{project.end_date}</td>
+              <td>{project.original_estimate}</td>
+              <td>{project.remaining_work}</td>
               <td>
-                <Link to={`/edit-team-member/${member.id}`}>
+                <Link to={`/edit-project/${project.id}`}>
                   <button>Edit</button>
                 </Link>
-                <button onClick={() => handleDelete(member.id)}>Delete</button>
+                <button onClick={() => handleDelete(project.id)}>Delete</button>
               </td>
             </tr>
           ))}
@@ -61,4 +66,4 @@ const TeamTable = () => {
   );
 };
 
-export default TeamTable;
+export default ProjectTable;

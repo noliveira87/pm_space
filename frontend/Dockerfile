@@ -17,7 +17,7 @@ COPY . /app/
 ENV CI=true
 
 # Executa o comando npm run build com verbosity
-RUN npm run build
+#RUN npm run build
 
 # Expõe a porta 3000 para acesso externo (se necessário)
 EXPOSE 3000
