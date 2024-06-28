@@ -29,10 +29,8 @@ const App = () => {
       <div>
         <Switch>
           <Route exact path="/">
-            <h2>Projects</h2>
             <ProjectTable />
             <AddProjectButton />
-            <h2>Team Members</h2>
             <TeamTable />
             <AddMemberButton />
           </Route>

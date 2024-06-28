@@ -95,6 +95,32 @@ app.put('/projects/:id', async (req, res) => {
   }
 });
 
+// Endpoint para eliminar projetos
+app.delete('/projects/:id', async (req, res) => {
+  const projectId = req.params.id;
+
+  try {
+    // Verificar se há alocações para este projeto
+    const allocationCheck = await db.query('SELECT COUNT(*) FROM allocations WHERE project_id = $1', [projectId]);
+    const allocationCount = parseInt(allocationCheck.rows[0].count, 10);
+
+    if (allocationCount > 0) {
+      return res.status(400).json({ error: 'Cannot delete project because it has allocations.' });
+    }
+
+    // Se não houver alocações, proceder com a exclusão do projeto
+    const result = await db.query('DELETE FROM projects WHERE id = $1 RETURNING *', [projectId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json({ message: 'Project deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting project:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Endpoints para membros da equipe
 app.get('/team_members', async (req, res) => {
   try {
