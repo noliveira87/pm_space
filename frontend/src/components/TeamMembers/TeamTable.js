@@ -52,11 +52,11 @@ const TeamTable = () => {
               <td>{member.vacation_days}</td>
               <td>
                 <Link to={`/edit-team-member/${member.id}`}>
-                  <button className="edit-button">
+                  <button className="team-edit-button">
                     <FontAwesomeIcon icon={faEdit} />
                   </button>
                 </Link>
-                <button className="delete-button" onClick={() => handleDelete(member.id)}>
+                <button className="team-delete-button" onClick={() => handleDelete(member.id)}>
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
               </td>

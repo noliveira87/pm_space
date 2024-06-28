@@ -69,13 +69,13 @@ const ProjectTable = () => {
               <td>{formatDate(project.end_date)}</td>
               <td>{project.original_estimate}</td>
               <td>{project.remaining_work}</td>
-              <td>
+              <td className="actions-column">
                 <Link to={`/edit-project/${project.id}`}>
-                  <button className="edit-button">
+                  <button className="project-edit-button">
                     <FontAwesomeIcon icon={faEdit} />
                   </button>
                 </Link>
-                <button className="delete-button" onClick={() => handleDelete(project.id)}>
+                <button className="project-delete-button" onClick={() => handleDelete(project.id)}>
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
               </td>
