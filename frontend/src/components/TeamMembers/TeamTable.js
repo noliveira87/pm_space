@@ -1,62 +1,64 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import apiConfig from '../../config/apiConfig';
 
-const ProjectTable = () => {
-  const [projects, setProjects] = useState([]);
+const TeamTable = () => {
+  const [teamMembers, setTeamMembers] = useState([]);
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchTeamMembers = async () => {
       try {
-        const response = await axios.get(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`);
-        setProjects(response.data);
+        const response = await axios.get(`${apiConfig.baseUrl}${apiConfig.endpoints.teamMembers}`);
+        setTeamMembers(response.data);
       } catch (error) {
-        console.error('Error fetching projects:', error);
+        console.error('Error fetching team members:', error);
       }
     };
 
-    fetchProjects();
+    fetchTeamMembers();
   }, []);
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}/${id}`);
-      setProjects(projects.filter(project => project.id !== id));
+      await axios.delete(`${apiConfig.baseUrl}${apiConfig.endpoints.teamMembers}/${id}`);
+      setTeamMembers(teamMembers.filter(member => member.id !== id));
     } catch (error) {
-      console.error('Error deleting project:', error);
+      console.error('Error deleting team member:', error);
     }
   };
 
   return (
     <div>
-      <h2>Projects</h2>
+      <h2>Team Members</h2>
       <table>
         <thead>
           <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Original Estimate</th>
-            <th>Remaining Work</th>
+            <th>Role</th>
+            <th>Vacation Days</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {projects.map((project) => (
-            <tr key={project.id}>
-              <td>{project.id}</td>
-              <td>{project.name}</td>
-              <td>{project.start_date}</td>
-              <td>{project.end_date}</td>
-              <td>{project.original_estimate}</td>
-              <td>{project.remaining_work}</td>
+          {teamMembers.map((member) => (
+            <tr key={member.id}>
+              <td>{member.id}</td>
+              <td>{member.name}</td>
+              <td>{member.role}</td>
+              <td>{member.vacation_days}</td>
               <td>
-                <Link to={`/edit-project/${project.id}`}>
-                  <button>Edit</button>
+                <Link to={`/edit-team-member/${member.id}`}>
+                  <button className="edit-button">
+                    <FontAwesomeIcon icon={faEdit} />
+                  </button>
                 </Link>
-                <button onClick={() => handleDelete(project.id)}>Delete</button>
+                <button className="delete-button" onClick={() => handleDelete(member.id)}>
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
               </td>
             </tr>
           ))}
@@ -66,4 +68,4 @@ const ProjectTable = () => {
   );
 };
 
-export default ProjectTable;
+export default TeamTable;

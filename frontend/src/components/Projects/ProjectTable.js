@@ -56,11 +56,11 @@ const ProjectTable = () => {
               <td>{project.remaining_work}</td>
               <td>
                 <Link to={`/edit-project/${project.id}`}>
-                  <button>
+                <button className="edit-button">
                     <FontAwesomeIcon icon={faEdit} />
                   </button>
                 </Link>
-                <button onClick={() => handleDelete(project.id)}>
+                <button className="delete-button" onClick={() => handleDelete(project.id)}>
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
               </td>
