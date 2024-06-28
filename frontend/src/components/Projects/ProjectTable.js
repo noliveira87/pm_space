@@ -12,7 +12,12 @@ const ProjectTable = () => {
     const fetchProjects = async () => {
       try {
         const response = await axios.get(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`);
-        setProjects(response.data);
+        const formattedProjects = response.data.map(project => ({
+          ...project,
+          start_date: project.start_date.split('T')[0], // Extrai apenas a parte da data
+          end_date: project.end_date.split('T')[0] // Extrai apenas a parte da data
+        }));
+        setProjects(formattedProjects);
       } catch (error) {
         console.error('Error fetching projects:', error);
       }
@@ -28,6 +33,11 @@ const ProjectTable = () => {
     } catch (error) {
       console.error('Error deleting project:', error);
     }
+  };
+
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return new Date(dateString).toLocaleDateString('pt-PT', options);
   };
 
   return (
@@ -50,13 +60,13 @@ const ProjectTable = () => {
             <tr key={project.id}>
               <td>{project.id}</td>
               <td>{project.name}</td>
-              <td>{project.start_date}</td>
-              <td>{project.end_date}</td>
+              <td>{formatDate(project.start_date)}</td>
+              <td>{formatDate(project.end_date)}</td>
               <td>{project.original_estimate}</td>
               <td>{project.remaining_work}</td>
               <td>
                 <Link to={`/edit-project/${project.id}`}>
-                <button className="edit-button">
+                  <button className="edit-button">
                     <FontAwesomeIcon icon={faEdit} />
                   </button>
                 </Link>
