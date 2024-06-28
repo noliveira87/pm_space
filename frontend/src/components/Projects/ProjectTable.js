@@ -1,23 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { fetchProjects } from '../api';
+import { fetchProjects } from '../../api/api';
 
 const ProjectTable = () => {
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
     const getProjects = async () => {
-      const projects = await fetchProjects();
-      setProjects(projects);
+      try {
+        const data = await fetchProjects();
+        setProjects(data);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
     };
+
     getProjects();
   }, []);
 
   return (
     <div>
-      <h2>Projects</h2>
       <table>
         <thead>
           <tr>
+            <th>ID</th>
             <th>Name</th>
             <th>Start Date</th>
             <th>End Date</th>
@@ -26,8 +31,9 @@ const ProjectTable = () => {
           </tr>
         </thead>
         <tbody>
-          {projects.map(project => (
+          {projects.map((project) => (
             <tr key={project.id}>
+              <td>{project.id}</td>
               <td>{project.name}</td>
               <td>{project.start_date}</td>
               <td>{project.end_date}</td>

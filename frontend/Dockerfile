@@ -1,32 +1,26 @@
-# Etapa de build
-FROM node:14 AS build
+# Use a imagem base do Node.js
+FROM node:14
 
-# Define o diretório de trabalho dentro do contêiner
+# Configura o diretório de trabalho dentro do contêiner
 WORKDIR /app
 
-# Copia o package.json e o package-lock.json
-COPY package*.json ./
+# Copia os arquivos necessários para o contêiner
+COPY package.json package-lock.json /app/
 
-# Instala as dependências
+# Instala as dependências do projeto
 RUN npm install
 
-# Copia todo o código-fonte
-COPY . .
+# Copia todos os arquivos do projeto para o contêiner
+COPY . /app/
 
-# Compila a aplicação React
+# Define a variável de ambiente CI=true para verbosity
+ENV CI=true
+
+# Executa o comando npm run build com verbosity
 RUN npm run build
 
-# Etapa de produção
-FROM nginx:alpine
+# Expõe a porta 3000 para acesso externo (se necessário)
+EXPOSE 3000
 
-# Copia os arquivos estáticos do build anterior
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Copia o arquivo de configuração personalizado do NGINX, se necessário
-# COPY nginx.conf /etc/nginx/nginx.conf
-
-# Exponha a porta que o NGINX vai usar
-EXPOSE 80
-
-# Comando padrão para iniciar o NGINX
-CMD ["nginx", "-g", "daemon off;"]
+# Comando para iniciar a aplicação
+CMD ["npm", "start"]
