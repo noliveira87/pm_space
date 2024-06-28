@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import apiConfig from '../../config/apiConfig';
+import '../../App.css';
 
 const AddTeamMember = () => {
   const history = useHistory();
   const [memberData, setMemberData] = useState({
     name: '',
     role: '',
-    vacation_days: '' // Nome do campo conforme esperado pelo backend
+    vacation_days: ''
   });
 
   const handleChange = (e) => {
@@ -29,10 +30,10 @@ const AddTeamMember = () => {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Add Team Member</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
+      <form className="form" onSubmit={handleSubmit}>
+        <label className="label">
           Name:
           <input
             type="text"
@@ -40,10 +41,10 @@ const AddTeamMember = () => {
             value={memberData.name}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Role:
           <input
             type="text"
@@ -51,10 +52,10 @@ const AddTeamMember = () => {
             value={memberData.role}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Vacation Days:
           <input
             type="number"
@@ -62,11 +63,12 @@ const AddTeamMember = () => {
             value={memberData.vacation_days}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <button type="submit">Add Member</button>
+        <button type="submit" className="button">Add Member</button>
       </form>
+      <button className="button" onClick={() => history.push('/')}>Back to Home</button>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import apiConfig from '../../config/apiConfig';
+import '../../App.css';
 
 const EditProject = () => {
   const { id } = useParams();
@@ -21,8 +22,8 @@ const EditProject = () => {
         const { name, start_date, end_date, original_estimate, remaining_work } = response.data;
         setProject({
           name,
-          start_date: start_date.substr(0, 10), // Ajusta o formato da data
-          end_date: end_date.substr(0, 10), // Ajusta o formato da data
+          start_date: start_date.substr(0, 10),
+          end_date: end_date.substr(0, 10),
           original_estimate,
           remaining_work
         });
@@ -44,7 +45,6 @@ const EditProject = () => {
     try {
       await axios.put(`${apiConfig.baseUrl}/projects/${id}`, project);
       alert('Project updated successfully!');
-      // Navegação alternativa para a página inicial ou outra página desejada
       window.location.href = '/';
     } catch (error) {
       console.error('Error updating project:', error);
@@ -53,38 +53,33 @@ const EditProject = () => {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Edit Project</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
+      <form className="form" onSubmit={handleSubmit}>
+        <label className="label">
           Name:
-          <input type="text" name="name" value={project.name} onChange={handleChange} required />
+          <input type="text" name="name" value={project.name} onChange={handleChange} required className="input" />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Start Date:
-          <input type="date" name="start_date" value={project.start_date} onChange={handleChange} required />
+          <input type="date" name="start_date" value={project.start_date} onChange={handleChange} required className="input" />
         </label>
-        <br />
-        <label>
+        <label className="label">
           End Date:
-          <input type="date" name="end_date" value={project.end_date} onChange={handleChange} required />
+          <input type="date" name="end_date" value={project.end_date} onChange={handleChange} required className="input" />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Original Estimate:
-          <input type="number" name="original_estimate" value={project.original_estimate} onChange={handleChange} required />
+          <input type="number" name="original_estimate" value={project.original_estimate} onChange={handleChange} required className="input" />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Remaining Work:
-          <input type="number" name="remaining_work" value={project.remaining_work} onChange={handleChange} required />
+          <input type="number" name="remaining_work" value={project.remaining_work} onChange={handleChange} required className="input" />
         </label>
-        <br />
-        <button type="submit">Save Changes</button>
+        <button type="submit" className="button">Save Changes</button>
       </form>
       <br />
-      <button onClick={() => window.location.href = '/'}>Back to Projects</button>
+      <button className="button" onClick={() => window.location.href = '/'}>Back to Projects</button>
     </div>
   );
 };

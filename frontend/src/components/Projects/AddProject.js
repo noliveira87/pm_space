@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import apiConfig from '../../config/apiConfig';
+import '../../App.css'; // Importa o CSS global
 
 const AddProject = () => {
   const history = useHistory();
@@ -33,10 +34,10 @@ const AddProject = () => {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Add Project</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
+      <form className="form" onSubmit={handleSubmit}>
+        <label className="label">
           Name:
           <input
             type="text"
@@ -44,10 +45,10 @@ const AddProject = () => {
             value={projectData.name}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Start Date:
           <input
             type="date"
@@ -55,10 +56,10 @@ const AddProject = () => {
             value={projectData.startDate}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <label>
+        <label className="label">
           End Date:
           <input
             type="date"
@@ -66,10 +67,10 @@ const AddProject = () => {
             value={projectData.endDate}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Original Estimate:
           <input
             type="number"
@@ -77,10 +78,10 @@ const AddProject = () => {
             value={projectData.originalEstimate}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Remaining Work:
           <input
             type="number"
@@ -88,10 +89,10 @@ const AddProject = () => {
             value={projectData.remainingWork}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <button type="submit">Add Project</button>
+        <button type="submit" className="button">Add Project</button>
       </form>
     </div>
   );

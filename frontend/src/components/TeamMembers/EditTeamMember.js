@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useHistory } from 'react-router-dom';
 import apiConfig from '../../config/apiConfig';
+import '../../App.css';
 
 const EditTeamMember = () => {
   const { id } = useParams();
@@ -35,7 +36,7 @@ const EditTeamMember = () => {
       ...memberData,
       [name]: name === 'vacation_days' ? parseInt(value, 10) || '' : value
     });
-  };  
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,10 +55,10 @@ const EditTeamMember = () => {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Edit Team Member</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
+      <form className="form" onSubmit={handleSubmit}>
+        <label className="label">
           Name:
           <input
             type="text"
@@ -65,10 +66,10 @@ const EditTeamMember = () => {
             value={memberData.name}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Role:
           <input
             type="text"
@@ -76,10 +77,10 @@ const EditTeamMember = () => {
             value={memberData.role}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <label>
+        <label className="label">
           Vacation Days:
           <input
             type="number"
@@ -87,11 +88,12 @@ const EditTeamMember = () => {
             value={memberData.vacation_days}
             onChange={handleChange}
             required
+            className="input"
           />
         </label>
-        <br />
-        <button type="submit">Update Member</button>
+        <button type="submit" className="button">Update Member</button>
       </form>
+      <button className="button" onClick={() => history.push('/')}>Back to Home</button>
     </div>
   );
 };
