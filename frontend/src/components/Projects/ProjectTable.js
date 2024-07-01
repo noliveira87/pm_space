@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import apiConfig from '../../config/apiConfig';
+import '../../App.css'; // Importa o CSS global
 
 const ProjectTable = () => {
   const [projects, setProjects] = useState([]);
@@ -14,8 +15,8 @@ const ProjectTable = () => {
         const response = await axios.get(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`);
         const formattedProjects = response.data.map(project => ({
           ...project,
-          start_date: project.start_date.split('T')[0], // Extrai apenas a parte da data
-          end_date: project.end_date.split('T')[0] // Extrai apenas a parte da data
+          start_date: project.start_date ? project.start_date.split('T')[0] : '', // Verifica se start_date é nulo ou vazio
+          end_date: project.end_date ? project.end_date.split('T')[0] : '' // Verifica se end_date é nulo ou vazio
         }));
         setProjects(formattedProjects);
       } catch (error) {
@@ -26,6 +27,11 @@ const ProjectTable = () => {
     fetchProjects();
   }, []);
 
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return new Date(dateString).toLocaleDateString('pt-PT', options);
+  };
+
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this project?');
     if (!confirmDelete) {
@@ -34,19 +40,16 @@ const ProjectTable = () => {
 
     try {
       await axios.delete(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}/${id}`);
-      setProjects(projects.filter(project => project.id !== id));
+      setProjects(projects.filter(p => p.id !== id));
+      alert('Project deleted successfully!');
     } catch (error) {
       console.error('Error deleting project:', error);
+      alert('Failed to delete project. Please try again later.');
     }
   };
 
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    return new Date(dateString).toLocaleDateString('pt-PT', options);
-  };
-
   return (
-    <div>
+    <div className="container">
       <h2>Projects</h2>
       <table>
         <thead>
@@ -57,6 +60,7 @@ const ProjectTable = () => {
             <th>End Date</th>
             <th>Original Estimate</th>
             <th>Remaining Work</th>
+            <th>Allocated Members</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -69,8 +73,20 @@ const ProjectTable = () => {
               <td>{formatDate(project.end_date)}</td>
               <td>{project.original_estimate}</td>
               <td>{project.remaining_work}</td>
-              <td className="actions-column">
-                <Link to={`/edit-project/${project.id}`}>
+              <td>
+                {project.allocated_members && project.allocated_members.length > 0 ? (
+                  project.allocated_members.map((member, index) => (
+                    <span key={index}>
+                      {member.name}
+                      {index < project.allocated_members.length - 1 && ', '}
+                    </span>
+                  ))
+                ) : (
+                  'No members allocated'
+                )}
+              </td>
+              <td>
+                <Link to={`/projects/edit/${project.id}`}>
                   <button className="project-edit-button">
                     <FontAwesomeIcon icon={faEdit} />
                   </button>

@@ -49,6 +49,12 @@ button.project-delete-button:hover {
   background-color: #cc0000;
 }
 
+/* Estilos para os ícones dentro dos botões */
+button.project-edit-button svg,
+button.project-delete-button svg {
+  margin-right: 5px;
+}
+
 /* Estilos para botões na tabela de membros da equipe */
 button.team-edit-button,
 button.team-delete-button {

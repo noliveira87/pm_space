@@ -13,11 +13,20 @@ app.use(express.json());
 // Endpoints para projetos
 app.get('/projects', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM projects');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    const projects = await db.query(`
+      SELECT 
+        p.*, 
+        json_agg(json_build_object('id', tm.id, 'name', tm.name, 'role', tm.role, 'vacation_days', tm.vacation_days, 'allocated_hours', a.allocated_hours)) AS allocated_members
+      FROM 
+        projects p
+        LEFT JOIN allocations a ON p.id = a.project_id
+        LEFT JOIN team_members tm ON a.member_id = tm.id
+      GROUP BY p.id;
+    `);
+    res.json(projects.rows);
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
 
@@ -25,11 +34,25 @@ app.get('/projects/:id', async (req, res) => {
   const projectId = req.params.id;
 
   try {
-    const result = await db.query('SELECT * FROM projects WHERE id = $1', [projectId]);
-    if (result.rows.length === 0) {
+    const projectResult = await db.query('SELECT * FROM projects WHERE id = $1', [projectId]);
+    if (projectResult.rows.length === 0) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    res.json(result.rows[0]);
+
+    const allocationsResult = await db.query(`
+      SELECT 
+        tm.id, tm.name, tm.role, tm.vacation_days, a.allocated_hours 
+      FROM 
+        allocations a
+        JOIN team_members tm ON a.member_id = tm.id
+      WHERE 
+        a.project_id = $1
+    `, [projectId]);
+
+    const project = projectResult.rows[0];
+    project.allocated_members = allocationsResult.rows;
+
+    res.json(project);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -37,62 +60,52 @@ app.get('/projects/:id', async (req, res) => {
 });
 
 app.post('/projects', async (req, res) => {
-  const { name, startDate, endDate, originalEstimate, remainingWork, allocatedMembers } = req.body;
+  const { name, start_date, end_date, original_estimate, remaining_work, allocated_members } = req.body;
 
   try {
-    // Verificar se há membros no banco de dados
-    const memberCountResult = await db.query('SELECT COUNT(*) FROM team_members');
-    const memberCount = parseInt(memberCountResult.rows[0].count, 10);
-
-    if (memberCount === 0) {
-      return res.status(400).json({ error: 'No team members found. Please add team members before creating a project.' });
-    }
-
-    // Prosseguir com a criação do projeto
     const result = await db.query(
       'INSERT INTO projects (name, start_date, end_date, original_estimate, remaining_work) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-      [name, startDate, endDate, originalEstimate, remainingWork]
+      [name, start_date, end_date, original_estimate, remaining_work]
     );
-    const projectId = result.rows[0].id;
 
-    // Adicionar alocações de membros se houver membros alocados
-    if (allocatedMembers && allocatedMembers.length > 0) {
-      for (const member of allocatedMembers) {
+    // Insira alocações de membros, se houver
+    if (allocated_members && allocated_members.length > 0) {
+      for (const member of allocated_members) {
         await db.query(
           'INSERT INTO allocations (project_id, member_id, allocated_hours) VALUES ($1, $2, $3)',
-          [projectId, member.memberId, member.allocatedHours]
+          [result.rows[0].id, member.member_id, member.allocated_hours]
         );
       }
     }
 
-    res.status(201).json({ id: projectId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(201).json({ id: result.rows[0].id });
+  } catch (error) {
+    console.error('Error adding project:', error);
+    res.status(500).json({ error: 'Failed to add project. Please try again later.' });
   }
 });
 
 // Endpoint para atualizar projeto
 app.put('/projects/:id', async (req, res) => {
-  const { name, startDate, endDate, originalEstimate, remainingWork, allocatedMembers } = req.body;
+  const { name, start_date, end_date, original_estimate, remaining_work, allocated_members } = req.body;
   const projectId = req.params.id;
 
   try {
     // Atualizar projeto
     await db.query(
       'UPDATE projects SET name = $1, start_date = $2, end_date = $3, original_estimate = $4, remaining_work = $5 WHERE id = $6',
-      [name, startDate, endDate, originalEstimate, remainingWork, projectId]
+      [name, start_date, end_date, original_estimate, remaining_work, projectId]
     );
 
     // Limpar alocações existentes
     await db.query('DELETE FROM allocations WHERE project_id = $1', [projectId]);
 
     // Adicionar novas alocações se houver membros alocados
-    if (allocatedMembers && allocatedMembers.length > 0) {
-      for (const member of allocatedMembers) {
+    if (allocated_members && allocated_members.length > 0) {
+      for (const member of allocated_members) {
         await db.query(
           'INSERT INTO allocations (project_id, member_id, allocated_hours) VALUES ($1, $2, $3)',
-          [projectId, member.memberId, member.allocatedHours]
+          [projectId, member.member_id, member.allocated_hours]
         );
       }
     }
@@ -103,7 +116,6 @@ app.put('/projects/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 
 // Endpoint para eliminar projetos
 app.delete('/projects/:id', async (req, res) => {
