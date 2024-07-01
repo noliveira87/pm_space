@@ -96,7 +96,7 @@ const ProjectTable = () => {
                 )}
               </td>
               <td>
-                <Link to={`/projects/edit/${project.id}`}>
+              <Link to={`/edit-project/${project.id}`}>
                   <button className="project-edit-button">
                     <FontAwesomeIcon icon={faEdit} />
                   </button>

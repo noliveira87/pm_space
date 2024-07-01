@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useHistory, useParams } from 'react-router-dom';
 import apiConfig from '../../config/apiConfig';
-import '../../App.css'; // Importa o CSS global
+import '../../App.css';
 
 const EditProject = () => {
   const { id } = useParams();
@@ -13,9 +13,12 @@ const EditProject = () => {
     start_date: '',
     end_date: '',
     original_estimate: '',
-    remainingWork: '', // Manter como string inicialmente
-    allocated_members: []
+    remaining_work: '',
+    allocated_members: [],
+    imageUrl: ''
   });
+
+  const [teamMembers, setTeamMembers] = useState([]);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -24,14 +27,15 @@ const EditProject = () => {
         const project = response.data;
         setProjectData({
           name: project.name,
-          start_date: project.start_date.split('T')[0],
-          end_date: project.end_date.split('T')[0],
-          original_estimate: project.original_estimate,
-          remainingWork: project.remaining_work,
+          start_date: project.start_date ? project.start_date.split('T')[0] : '',
+          end_date: project.end_date ? project.end_date.split('T')[0] : '',
+          original_estimate: project.original_estimate.toString(),
+          remaining_work: project.remaining_work.toString(),
           allocated_members: project.allocated_members.map(member => ({
-            memberId: member.member_id,
+            memberId: member.id,
             allocatedHours: member.allocated_hours
-          }))
+          })),
+          imageUrl: project.imageUrl
         });
       } catch (error) {
         console.error('Error fetching project:', error);
@@ -40,8 +44,6 @@ const EditProject = () => {
 
     fetchProject();
   }, [id]);
-
-  const [teamMembers, setTeamMembers] = useState([]);
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -58,8 +60,7 @@ const EditProject = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Se o campo for remainingWork, converte para inteiro
-    const updatedValue = name === 'remainingWork' ? parseInt(value, 10) : value;
+    const updatedValue = name === 'remaining_work' ? parseInt(value, 10) : value;
     setProjectData({ ...projectData, [name]: updatedValue });
   };
 
@@ -78,10 +79,26 @@ const EditProject = () => {
     }
   };
 
+  const handleAllocatedHoursChange = (e, memberId) => {
+    const { value } = e.target;
+    setProjectData(prevState => ({
+      ...prevState,
+      allocated_members: prevState.allocated_members.map(member =>
+        member.memberId === memberId ? { ...member, allocatedHours: parseInt(value, 10) } : member
+      )
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}/${id}`, projectData);
+      await axios.put(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}/${id}`, {
+        ...projectData,
+        allocated_members: projectData.allocated_members.map(member => ({
+          member_id: member.memberId,
+          allocated_hours: member.allocatedHours
+        }))
+      });
       alert('Project updated successfully!');
       history.push('/');
     } catch (error) {
@@ -142,8 +159,8 @@ const EditProject = () => {
           Remaining Work:
           <input
             type="number"
-            name="remainingWork"
-            value={projectData.remainingWork}
+            name="remaining_work"
+            value={projectData.remaining_work}
             onChange={handleChange}
             required
             className="input"
@@ -152,7 +169,7 @@ const EditProject = () => {
         <div className="label">Allocate Members:</div>
         <div className="allocated-members">
           {teamMembers.map(member => (
-            <div key={member.id}>
+            <div key={member.id} className="allocated-member">
               <label>
                 <input
                   type="checkbox"
@@ -161,9 +178,22 @@ const EditProject = () => {
                 />
                 {member.name}
               </label>
+              {projectData.allocated_members.some(m => m.memberId === member.id) && (
+                <input
+                  type="number"
+                  value={projectData.allocated_members.find(m => m.memberId === member.id).allocatedHours}
+                  onChange={(e) => handleAllocatedHoursChange(e, member.id)}
+                  className="input allocated-hours-input"
+                />
+              )}
             </div>
           ))}
         </div>
+        {projectData.imageUrl && (
+          <div className="project-image">
+            <img src={projectData.imageUrl} alt="Project" />
+          </div>
+        )}
         <button type="submit" className="button">Update Project</button>
       </form>
     </div>
