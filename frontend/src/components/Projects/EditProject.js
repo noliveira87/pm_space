@@ -15,7 +15,6 @@ const EditProject = () => {
     original_estimate: '',
     remaining_work: '',
     allocated_members: [],
-    imageUrl: ''
   });
 
   const [teamMembers, setTeamMembers] = useState([]);
@@ -34,8 +33,7 @@ const EditProject = () => {
           allocated_members: project.allocated_members.map(member => ({
             memberId: member.id,
             allocatedHours: member.allocated_hours
-          })),
-          imageUrl: project.imageUrl
+          }))
         });
       } catch (error) {
         console.error('Error fetching project:', error);
@@ -166,17 +164,17 @@ const EditProject = () => {
             className="input"
           />
         </label>
-        <div className="label">Allocate Members:</div>
+        <div className="label">Allocated Members:</div>
         <div className="allocated-members">
           {teamMembers.map(member => (
             <div key={member.id} className="allocated-member">
-              <label>
+              <label className="member-label">
                 <input
                   type="checkbox"
                   onChange={(e) => handleMemberChange(e, member.id)}
                   checked={projectData.allocated_members.some(m => m.memberId === member.id)}
                 />
-                {member.name}
+                <span className="member-name">{member.name}</span>
               </label>
               {projectData.allocated_members.some(m => m.memberId === member.id) && (
                 <input
@@ -189,11 +187,6 @@ const EditProject = () => {
             </div>
           ))}
         </div>
-        {projectData.imageUrl && (
-          <div className="project-image">
-            <img src={projectData.imageUrl} alt="Project" />
-          </div>
-        )}
         <button type="submit" className="button">Update Project</button>
       </form>
     </div>

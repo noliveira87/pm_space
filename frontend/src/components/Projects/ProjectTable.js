@@ -87,7 +87,7 @@ const ProjectTable = () => {
                 {project.allocated_members && project.allocated_members.length > 0 ? (
                   project.allocated_members.map((member, index) => (
                     <span key={member.memberId}>
-                      {member.name} ({member.allocated_hours} hours)
+                      <span className="member-name">{member.name}</span> (<span className="allocated-hours">{member.allocated_hours} hours</span>)
                       {index < project.allocated_members.length - 1 && ', '}
                     </span>
                   ))
@@ -96,7 +96,7 @@ const ProjectTable = () => {
                 )}
               </td>
               <td>
-              <Link to={`/edit-project/${project.id}`}>
+                <Link to={`/edit-project/${project.id}`}>
                   <button className="project-edit-button">
                     <FontAwesomeIcon icon={faEdit} />
                   </button>
