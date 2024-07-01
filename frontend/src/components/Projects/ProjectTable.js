@@ -13,10 +13,20 @@ const ProjectTable = () => {
     const fetchProjects = async () => {
       try {
         const response = await axios.get(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`);
-        const formattedProjects = response.data.map(project => ({
-          ...project,
-          start_date: project.start_date ? project.start_date.split('T')[0] : '', // Verifica se start_date é nulo ou vazio
-          end_date: project.end_date ? project.end_date.split('T')[0] : '' // Verifica se end_date é nulo ou vazio
+        const formattedProjects = await Promise.all(response.data.map(async project => {
+          const allocationsResponse = await axios.get(apiConfig.baseUrl + apiConfig.endpoints.projectAllocations(project.id));
+          return {
+            ...project,
+            start_date: project.start_date ? project.start_date.split('T')[0] : '', // Verifica se start_date é nulo ou vazio
+            end_date: project.end_date ? project.end_date.split('T')[0] : '', // Verifica se end_date é nulo ou vazio
+            allocated_members: allocationsResponse.data.map(allocation => ({
+              memberId: allocation.id,
+              name: allocation.name,
+              role: allocation.role,
+              vacation_days: allocation.vacation_days,
+              allocated_hours: allocation.allocated_hours
+            }))
+          };
         }));
         setProjects(formattedProjects);
       } catch (error) {
@@ -76,8 +86,8 @@ const ProjectTable = () => {
               <td>
                 {project.allocated_members && project.allocated_members.length > 0 ? (
                   project.allocated_members.map((member, index) => (
-                    <span key={index}>
-                      {member.name}
+                    <span key={member.memberId}>
+                      {member.name} ({member.allocated_hours} hours)
                       {index < project.allocated_members.length - 1 && ', '}
                     </span>
                   ))

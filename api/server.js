@@ -143,6 +143,28 @@ app.delete('/projects/:id', async (req, res) => {
   }
 });
 
+// Endpoint para buscar alocações por projeto
+app.get('/projects/:projectId/allocations', async (req, res) => {
+  const projectId = req.params.projectId;
+
+  try {
+    const allocations = await db.query(`
+      SELECT 
+        tm.id, tm.name, tm.role, tm.vacation_days, a.allocated_hours 
+      FROM 
+        allocations a
+        JOIN team_members tm ON a.member_id = tm.id
+      WHERE 
+        a.project_id = $1
+    `, [projectId]);
+
+    res.json(allocations.rows);
+  } catch (err) {
+    console.error('Error fetching allocations:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Endpoints para membros da equipe
 app.get('/team_members', async (req, res) => {
   try {
@@ -231,7 +253,6 @@ app.delete('/team_members/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 
 app.listen(3001, () => {
   console.log('Server running on port 3001');

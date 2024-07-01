@@ -5,7 +5,7 @@ const apiConfig = {
     projects: '/projects',
     teamMembers: '/team_members',
     newProjectId: '/projects/new-id',
-    // Adicione outros endpoints conforme necessário
+    projectAllocations: (projectId) => `/projects/${projectId}/allocations`,
   },
 };
 
