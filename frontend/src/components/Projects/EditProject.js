@@ -1,7 +1,9 @@
+// src/components/Projects/EditProject.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useHistory, useParams } from 'react-router-dom';
 import apiConfig from '../../config/apiConfig';
+import { calculateEndDate } from '../../utils/dateUtils';
 import '../../App.css';
 
 const EditProject = () => {
@@ -14,10 +16,8 @@ const EditProject = () => {
     end_date: '',
     original_estimate: '',
     remaining_work: '',
-    allocated_members: [],
+    allocated_members: []
   });
-
-  const [teamMembers, setTeamMembers] = useState([]);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -44,6 +44,15 @@ const EditProject = () => {
   }, [id]);
 
   useEffect(() => {
+    if (projectData.start_date && projectData.original_estimate && projectData.allocated_members.length > 0) {
+      const calculatedEndDate = calculateEndDate(projectData.start_date, projectData.original_estimate, projectData.allocated_members);
+      setProjectData(prevState => ({ ...prevState, end_date: calculatedEndDate.toISOString().split('T')[0] }));
+    }
+  }, [projectData.start_date, projectData.original_estimate, projectData.allocated_members]);
+
+  const [teamMembers, setTeamMembers] = useState([]);
+
+  useEffect(() => {
     const fetchTeamMembers = async () => {
       try {
         const response = await axios.get(`${apiConfig.baseUrl}${apiConfig.endpoints.teamMembers}`);
@@ -58,8 +67,7 @@ const EditProject = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const updatedValue = name === 'remaining_work' ? parseInt(value, 10) : value;
-    setProjectData({ ...projectData, [name]: updatedValue });
+    setProjectData({ ...projectData, [name]: value });
   };
 
   const handleMemberChange = (e, memberId) => {
@@ -77,7 +85,7 @@ const EditProject = () => {
     }
   };
 
-  const handleAllocatedHoursChange = (e, memberId) => {
+  const handleMemberHoursChange = (e, memberId) => {
     const { value } = e.target;
     setProjectData(prevState => ({
       ...prevState,
@@ -137,8 +145,7 @@ const EditProject = () => {
             type="date"
             name="end_date"
             value={projectData.end_date}
-            onChange={handleChange}
-            required
+            readOnly
             className="input"
           />
         </label>
@@ -167,8 +174,8 @@ const EditProject = () => {
         <div className="label">Allocated Members:</div>
         <div className="allocated-members">
           {teamMembers.map(member => (
-            <div key={member.id} className="allocated-member">
-              <label className="member-label">
+            <div key={member.id}>
+              <label>
                 <input
                   type="checkbox"
                   onChange={(e) => handleMemberChange(e, member.id)}
@@ -180,14 +187,16 @@ const EditProject = () => {
                 <input
                   type="number"
                   value={projectData.allocated_members.find(m => m.memberId === member.id).allocatedHours}
-                  onChange={(e) => handleAllocatedHoursChange(e, member.id)}
-                  className="input allocated-hours-input"
+                  onChange={(e) => handleMemberHoursChange(e, member.id)}
+                  className="input"
+                  min="0"
+                  max="8" // Limitando as horas alocadas por membro por dia
                 />
               )}
             </div>
           ))}
         </div>
-        <button type="submit" className="button">Update Project</button>
+        <button type="submit" className="button">Save</button>
       </form>
     </div>
   );

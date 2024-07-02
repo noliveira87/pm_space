@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import apiConfig from '../../config/apiConfig';
-import '../../App.css'; // Importa o CSS global
+import { calculateEndDate } from '../../utils/dateUtils';
+import '../../App.css';
 
 const AddProject = () => {
-  const history = useHistory();
-
   const [projectData, setProjectData] = useState({
     name: '',
     start_date: '',
-    end_date: '',
     original_estimate: '',
-    remaining_work: '',
     allocated_members: []
   });
+
+  const [teamMembers, setTeamMembers] = useState([]);
+  const history = useHistory();
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -29,34 +29,32 @@ const AddProject = () => {
     fetchTeamMembers();
   }, []);
 
-  const [teamMembers, setTeamMembers] = useState([]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProjectData({ ...projectData, [name]: value });
   };
 
-  const handleMemberChange = (e, member_id) => {
+  const handleMemberChange = (e, memberId) => {
     const { checked } = e.target;
     if (checked) {
       setProjectData(prevState => ({
         ...prevState,
-        allocated_members: [...prevState.allocated_members, { member_id, allocated_hours: 0 }]
+        allocated_members: [...prevState.allocated_members, { memberId, allocatedHours: 8 }] // Aloca 8 horas por padrão
       }));
     } else {
       setProjectData(prevState => ({
         ...prevState,
-        allocated_members: prevState.allocated_members.filter(member => member.member_id !== member_id)
+        allocated_members: prevState.allocated_members.filter(member => member.memberId !== memberId)
       }));
     }
   };
 
-  const handleHoursChange = (e, member_id) => {
+  const handleMemberHoursChange = (e, memberId) => {
     const { value } = e.target;
     setProjectData(prevState => ({
       ...prevState,
-      allocated_members: prevState.allocated_members.map(member => 
-        member.member_id === member_id ? { ...member, allocated_hours: parseInt(value, 10) } : member
+      allocated_members: prevState.allocated_members.map(member =>
+        member.memberId === memberId ? { ...member, allocatedHours: parseInt(value, 10) } : member
       )
     }));
   };
@@ -64,12 +62,20 @@ const AddProject = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`, projectData);
-      alert('Project added successfully!');
-      history.push('/');
+      const endDate = calculateEndDate(projectData.start_date, projectData.original_estimate, projectData.allocated_members);
+      await axios.post(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`, {
+        ...projectData,
+        end_date: endDate.toISOString().split('T')[0], // Converte a data para o formato YYYY-MM-DD
+        allocated_members: projectData.allocated_members.map(member => ({
+          member_id: member.memberId,
+          allocated_hours: member.allocatedHours
+        }))
+      });
+      alert('Project created successfully!');
+      history.push('/'); // Redireciona para a página inicial
     } catch (error) {
-      console.error('Error adding project:', error);
-      alert('Failed to add project. Please try again later.');
+      console.error('Error creating project:', error);
+      alert('Failed to create project. Please try again later.');
     }
   };
 
@@ -100,18 +106,7 @@ const AddProject = () => {
           />
         </label>
         <label className="label">
-          End Date:
-          <input
-            type="date"
-            name="end_date"
-            value={projectData.end_date}
-            onChange={handleChange}
-            required
-            className="input"
-          />
-        </label>
-        <label className="label">
-          Original Estimate:
+          Original Estimate (hours):
           <input
             type="number"
             name="original_estimate"
@@ -121,18 +116,7 @@ const AddProject = () => {
             className="input"
           />
         </label>
-        <label className="label">
-          Remaining Work:
-          <input
-            type="number"
-            name="remaining_work"
-            value={projectData.remaining_work}
-            onChange={handleChange}
-            required
-            className="input"
-          />
-        </label>
-        <div className="label">Allocate Members:</div>
+        <div className="label">Allocated Members:</div>
         <div className="allocated-members">
           {teamMembers.map(member => (
             <div key={member.id}>
@@ -140,17 +124,18 @@ const AddProject = () => {
                 <input
                   type="checkbox"
                   onChange={(e) => handleMemberChange(e, member.id)}
-                  checked={projectData.allocated_members.some(m => m.member_id === member.id)}
+                  checked={projectData.allocated_members.some(m => m.memberId === member.id)}
                 />
                 {member.name}
               </label>
-              {projectData.allocated_members.some(m => m.member_id === member.id) && (
+              {projectData.allocated_members.some(m => m.memberId === member.id) && (
                 <input
                   type="number"
-                  placeholder="Allocated Hours"
-                  value={projectData.allocated_members.find(m => m.member_id === member.id)?.allocated_hours || ''}
-                  onChange={(e) => handleHoursChange(e, member.id)}
+                  value={projectData.allocated_members.find(m => m.memberId === member.id).allocatedHours}
+                  onChange={(e) => handleMemberHoursChange(e, member.id)}
                   className="input"
+                  min="0"
+                  max="8"
                 />
               )}
             </div>
