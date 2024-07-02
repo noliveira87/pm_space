@@ -1,8 +1,5 @@
 // src/utils/dateUtils.js
 
-const workingDaysPerWeek = 5;
-const hoursPerDay = 8;
-
 export const calculateEndDate = (startDate, originalEstimate, allocatedMembers) => {
   const totalHours = parseInt(originalEstimate, 10);
 
