@@ -1,22 +1,22 @@
-// src/components/Projects/AddProject.js
 import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom'; // Importa useHistory do react-router-dom
 import apiConfig from '../../config/apiConfig';
 import { calculateEndDate } from '../../utils/dateUtils';
-import '../../App.css'; // Importa o CSS global
+import '../../App.css';
 
 const AddProject = () => {
   const [projectData, setProjectData] = useState({
     name: '',
     start_date: '',
+    end_date: '',
     original_estimate: '',
     remaining_work: '',
     allocated_members: []
   });
 
   const [teamMembers, setTeamMembers] = useState([]);
-  const history = useHistory(); // Inicializa o useHistory
+  const history = useHistory();
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -41,51 +41,46 @@ const AddProject = () => {
     if (checked) {
       setProjectData(prevState => ({
         ...prevState,
-        allocated_members: [...prevState.allocated_members, { memberId, allocatedHours: 8 }] // Aloca 8 horas por padrão
+        allocated_members: [...prevState.allocated_members, {
+          member_id: memberId,
+          allocations: [{
+            date: projectData.start_date,
+            allocated_hours: 8
+          }]
+        }]
       }));
     } else {
       setProjectData(prevState => ({
         ...prevState,
-        allocated_members: prevState.allocated_members.filter(member => member.memberId !== memberId)
+        allocated_members: prevState.allocated_members.filter(member => member.member_id !== memberId)
       }));
     }
   };
 
-  const handleMemberHoursChange = (e, memberId) => {
-    const { value } = e.target;
-    setProjectData(prevState => ({
-      ...prevState,
-      allocated_members: prevState.allocated_members.map(member =>
-        member.memberId === memberId ? { ...member, allocatedHours: parseInt(value, 10) } : member
-      )
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleCalculateEndDate = () => {
     try {
-      // Calcular a data de término usando remaining_work em vez de original_estimate
       const endDate = calculateEndDate(projectData.start_date, projectData.remaining_work, projectData.allocated_members);
-      await axios.post(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`, {
-        ...projectData,
-        end_date: endDate.toISOString().split('T')[0], // Converte a data para o formato YYYY-MM-DD
-        allocated_members: projectData.allocated_members.map(member => ({
-          member_id: member.memberId,
-          allocated_hours: member.allocatedHours
-        }))
-      });
-      alert('Project created successfully!');
-      history.push('/'); // Redireciona para a página inicial
+      const formattedEndDate = endDate.toISOString().split('T')[0]; // Formata end_date para ISO
+      setProjectData(prevState => ({
+        ...prevState,
+        end_date: formattedEndDate // Atualiza o estado com end_date calculado
+      }));
     } catch (error) {
-      console.error('Error creating project:', error);
-      alert('Failed to create project. Please try again later.');
+      alert(error.message);
+      return; // Impede o redirecionamento em caso de erro
     }
   };
+
+  useEffect(() => {
+    if (projectData.end_date) {
+      history.push('/adjust-allocations', { projectData });
+    }
+  }, [projectData.end_date, history]);
 
   return (
     <div className="container">
       <h2>Add Project</h2>
-      <form className="form" onSubmit={handleSubmit}>
+      <form className="form">
         <label className="label">
           Name:
           <input
@@ -138,24 +133,16 @@ const AddProject = () => {
                 <input
                   type="checkbox"
                   onChange={(e) => handleMemberChange(e, member.id)}
-                  checked={projectData.allocated_members.some(m => m.memberId === member.id)}
+                  checked={projectData.allocated_members.some(m => m.member_id === member.id)}
                 />
                 {member.name}
               </label>
-              {projectData.allocated_members.some(m => m.memberId === member.id) && (
-                <input
-                  type="number"
-                  value={projectData.allocated_members.find(m => m.memberId === member.id).allocatedHours}
-                  onChange={(e) => handleMemberHoursChange(e, member.id)}
-                  className="input"
-                  min="0"
-                  max="8" // Limitando as horas alocadas por membro por dia
-                />
-              )}
             </div>
           ))}
         </div>
-        <button type="submit" className="button">Add Project</button>
+        <button type="button" className="button" onClick={handleCalculateEndDate}>
+          Calculate End Date and Next
+        </button>
       </form>
     </div>
   );
