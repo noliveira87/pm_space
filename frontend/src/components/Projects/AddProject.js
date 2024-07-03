@@ -1,20 +1,22 @@
+// src/components/Projects/AddProject.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom'; // Importa useHistory do react-router-dom
 import apiConfig from '../../config/apiConfig';
 import { calculateEndDate } from '../../utils/dateUtils';
-import '../../App.css';
+import '../../App.css'; // Importa o CSS global
 
 const AddProject = () => {
   const [projectData, setProjectData] = useState({
     name: '',
     start_date: '',
     original_estimate: '',
+    remaining_work: '',
     allocated_members: []
   });
 
   const [teamMembers, setTeamMembers] = useState([]);
-  const history = useHistory();
+  const history = useHistory(); // Inicializa o useHistory
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -62,7 +64,8 @@ const AddProject = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const endDate = calculateEndDate(projectData.start_date, projectData.original_estimate, projectData.allocated_members);
+      // Calcular a data de término usando remaining_work em vez de original_estimate
+      const endDate = calculateEndDate(projectData.start_date, projectData.remaining_work, projectData.allocated_members);
       await axios.post(`${apiConfig.baseUrl}${apiConfig.endpoints.projects}`, {
         ...projectData,
         end_date: endDate.toISOString().split('T')[0], // Converte a data para o formato YYYY-MM-DD
@@ -116,7 +119,18 @@ const AddProject = () => {
             className="input"
           />
         </label>
-        <div className="label">Allocated Members:</div>
+        <label className="label">
+          Remaining Work (hours):
+          <input
+            type="number"
+            name="remaining_work"
+            value={projectData.remaining_work}
+            onChange={handleChange}
+            required
+            className="input"
+          />
+        </label>
+        <div className="label">Allocate Members:</div>
         <div className="allocated-members">
           {teamMembers.map(member => (
             <div key={member.id}>
@@ -135,7 +149,7 @@ const AddProject = () => {
                   onChange={(e) => handleMemberHoursChange(e, member.id)}
                   className="input"
                   min="0"
-                  max="8"
+                  max="8" // Limitando as horas alocadas por membro por dia
                 />
               )}
             </div>

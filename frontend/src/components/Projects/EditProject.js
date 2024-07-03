@@ -44,11 +44,11 @@ const EditProject = () => {
   }, [id]);
 
   useEffect(() => {
-    if (projectData.start_date && projectData.original_estimate && projectData.allocated_members.length > 0) {
-      const calculatedEndDate = calculateEndDate(projectData.start_date, projectData.original_estimate, projectData.allocated_members);
+    if (projectData.start_date && projectData.remaining_work && projectData.allocated_members.length > 0) {
+      const calculatedEndDate = calculateEndDate(projectData.start_date, projectData.remaining_work, projectData.allocated_members);
       setProjectData(prevState => ({ ...prevState, end_date: calculatedEndDate.toISOString().split('T')[0] }));
     }
-  }, [projectData.start_date, projectData.original_estimate, projectData.allocated_members]);
+  }, [projectData.start_date, projectData.remaining_work, projectData.allocated_members]);
 
   const [teamMembers, setTeamMembers] = useState([]);
 
@@ -150,7 +150,7 @@ const EditProject = () => {
           />
         </label>
         <label className="label">
-          Original Estimate:
+          Original Estimate (hours):
           <input
             type="number"
             name="original_estimate"
@@ -161,7 +161,7 @@ const EditProject = () => {
           />
         </label>
         <label className="label">
-          Remaining Work:
+          Remaining Work (hours):
           <input
             type="number"
             name="remaining_work"
