@@ -10,13 +10,12 @@ app.use(cors());
 // Middleware para tratar corpos de requisição em JSON
 app.use(express.json());
 
-// Endpoints para projetos
 app.get('/projects', async (req, res) => {
   try {
     const projects = await db.query(`
       SELECT 
         p.*, 
-        json_agg(json_build_object('id', tm.id, 'name', tm.name, 'role', tm.role, 'vacation_days', tm.vacation_days, 'allocated_hours', a.allocated_hours)) AS allocated_members
+        json_agg(json_build_object('id', tm.id, 'name', tm.name, 'role', tm.role, 'vacation_days', tm.vacation_days, 'allocations', a.allocated_hours)) AS allocated_members
       FROM 
         projects p
         LEFT JOIN allocations a ON p.id = a.project_id
@@ -68,13 +67,16 @@ app.post('/projects', async (req, res) => {
       [name, start_date, end_date, original_estimate, remaining_work]
     );
 
-    // Insira alocações de membros, se houver
     if (allocated_members && allocated_members.length > 0) {
       for (const member of allocated_members) {
-        await db.query(
-          'INSERT INTO allocations (project_id, member_id, allocated_hours) VALUES ($1, $2, $3)',
-          [result.rows[0].id, member.member_id, member.allocated_hours]
-        );
+        if (member.allocations && member.allocations.length > 0) {
+          for (const allocation of member.allocations) {
+            await db.query(
+              'INSERT INTO allocations (project_id, member_id, allocated_hours) VALUES ($1, $2, $3)',
+              [result.rows[0].id, member.member_id, allocation.allocated_hours]
+            );
+          }
+        }
       }
     }
 
