@@ -11,18 +11,18 @@ export const calculateEndDate = (startDate, remainingWork, allocatedMembers) => 
   }
 
   const totalWorkDays = Math.ceil(totalHours / totalDailyAllocatedHours);
-  let endDate = new Date(startDate); // Inicia com a data de início
+  let end_date = new Date(startDate); // Inicializa endDate com startDate
   let daysAdded = 0;
 
   while (daysAdded < totalWorkDays) {
-    // Incrementa a data enquanto não atingir o número total de dias de trabalho
-    endDate.setDate(endDate.getDate() + 1);
-
-    // Verifica se a data calculada não é um sábado (6) ou domingo (0)
-    if (endDate.getDay() !== 0 && endDate.getDay() !== 6) {
+    // Verifica se a data não é sábado (6) nem domingo (0)
+    if (end_date.getDay() !== 0 && end_date.getDay() !== 6) {
       daysAdded++;
+    }
+    if (daysAdded < totalWorkDays) {
+      end_date.setDate(end_date.getDate() + 1);
     }
   }
 
-  return endDate;
+  return end_date;
 };

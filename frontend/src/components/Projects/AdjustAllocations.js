@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import axios from 'axios';
 import apiConfig from '../../config/apiConfig';
-import { calculateEndDate } from '../../utils/dateUtils';
 import '../../App.css';
 
 const AdjustAllocations = () => {
   const location = useLocation();
   const history = useHistory();
   const [projectData, setProjectData] = useState(location.state.projectData || {});
+  const [endDate, setEndDate] = useState('');
 
   const generateDates = (startDate, endDate) => {
     const dates = [];
@@ -24,29 +24,27 @@ const AdjustAllocations = () => {
   };
 
   useEffect(() => {
-    console.log('Project Data:', projectData);
-  }, [projectData]);
-
-  const dates = generateDates(projectData.start_date, projectData.end_date);
-
-  const initializeAllocations = useCallback(() => {
-    setProjectData(prevState => ({
-      ...prevState,
-      allocated_members: prevState.allocated_members.map(member => ({
-        ...member,
-        allocations: dates.map(date => ({
-          date,
-          allocated_hours: member.allocations.find(a => a.date === date)?.allocated_hours || 0
+    if (projectData.start_date && projectData.end_date) {
+      const dates = generateDates(projectData.start_date, projectData.end_date);
+      // Atualiza o estado com as datas geradas
+      setProjectData(prevState => ({
+        ...prevState,
+        allocated_members: prevState.allocated_members.map(member => ({
+          ...member,
+          allocations: dates.map(date => ({
+            date,
+            allocated_hours: member.allocations.find(a => a.date === date)?.allocated_hours || 0
+          }))
         }))
-      }))
-    }));
-  }, [dates]);
+      }));
+    }
+  }, [projectData.start_date, projectData.end_date]);
 
   useEffect(() => {
-    if (projectData.start_date && projectData.end_date && projectData.allocated_members.length > 0) {
-      initializeAllocations();
+    if (projectData.end_date) {
+      setEndDate(projectData.end_date);
     }
-  }, [projectData.start_date, projectData.end_date, projectData.allocated_members, initializeAllocations]);
+  }, [projectData.end_date]);
 
   const handleMemberHoursChange = (e, memberId, date) => {
     const { value } = e.target;
@@ -88,27 +86,35 @@ const AdjustAllocations = () => {
   return (
     <div className="container">
       <h2>Adjust Allocations</h2>
+      {endDate && (
+        <p>End Date: {endDate}</p>
+      )}
       <form className="form" onSubmit={handleSubmit}>
-        {dates.map(date => (
-          <div key={date}>
-            <h3>{date}</h3>
-            {projectData.allocated_members && projectData.allocated_members.map(member => (
-              <div key={member.member_id}>
-                <label>
-                  {member.name}:
-                  <input
-                    type="number"
-                    value={member.allocations.find(allocation => allocation.date === date)?.allocated_hours || 0}
-                    onChange={(e) => handleMemberHoursChange(e, member.member_id, date)}
-                    className="input"
-                    min="0"
-                    max="8"
-                  />
-                </label>
-              </div>
-            ))}
-          </div>
-        ))}
+        {projectData.allocated_members && projectData.allocated_members.length > 0 ? (
+          projectData.allocated_members.flatMap(member =>
+            member.allocations.map(allocation => ({
+              member,
+              allocation
+            }))
+          ).map(({ member, allocation }) => (
+            <div key={`${member.member_id}-${allocation.date}`}>
+              <h3>{allocation.date}</h3>
+              <label>
+                {member.name}:
+                <input
+                  type="number"
+                  value={allocation.allocated_hours}
+                  onChange={(e) => handleMemberHoursChange(e, member.member_id, allocation.date)}
+                  className="input"
+                  min="0"
+                  max="8"
+                />
+              </label>
+            </div>
+          ))
+        ) : (
+          <p>No allocations to display.</p>
+        )}
         <button type="submit" className="button">Save Project</button>
       </form>
     </div>
