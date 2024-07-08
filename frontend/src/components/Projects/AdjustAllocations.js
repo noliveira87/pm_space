@@ -45,6 +45,7 @@ const AdjustAllocations = (props) => {
     const updatedMembers = allocatedMembers.map(member => {
       if (member.member_id === memberId) {
         const updatedAllocations = member.allocations.map(allocation => {
+          // Comparação das datas como strings no formato ISO
           if (allocation.date === date.toISOString().split('T')[0]) {
             return {
               ...allocation,
@@ -89,25 +90,24 @@ const AdjustAllocations = (props) => {
         {allocatedMembers.map(member => (
           <div key={member.member_id}>
             <p><strong>{getMemberName(member.member_id)}</strong> - Allocations:</p>
-            {dateRange.map((date, index) => (
-              <div key={index}>
-                <p>Date: {date.toISOString().split('T')[0]}</p>
-                <label>
-                  Allocated Hours:
-                  <input
-                    type="number"
-                    value={
-                      member.allocations.find(allocation => allocation.date === date.toISOString().split('T')[0])
-                        ? member.allocations.find(allocation => allocation.date === date.toISOString().split('T')[0]).allocated_hours
-                        : ''
-                    }
-                    min="1"
-                    max="8"
-                    onChange={(e) => handleAllocationChange(member.member_id, date, e.target.value)}
-                  />
-                </label>
-              </div>
-            ))}
+            {dateRange.map((date, index) => {
+              const allocationForDate = member.allocations.find(allocation => allocation.date === date.toISOString().split('T')[0]);
+              return (
+                <div key={`${member.member_id}-${index}`}>
+                  <p>Date: {date.toISOString().split('T')[0]}</p>
+                  <label>
+                    Allocated Hours:
+                    <input
+                      type="number"
+                      value={allocationForDate ? allocationForDate.allocated_hours : ''}
+                      min="1"
+                      max="8"
+                      onChange={(e) => handleAllocationChange(member.member_id, date, e.target.value)}
+                    />
+                  </label>
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>

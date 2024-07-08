@@ -86,9 +86,8 @@ const ProjectTable = () => {
               <td>
                 {project.allocated_members && project.allocated_members.length > 0 ? (
                   project.allocated_members.map((member, index) => (
-                    <span key={member.memberId}>
+                    <span key={`${member.memberId}-${index}`}>
                       <span className="member-name">{member.name}</span> (<span className="allocated-hours">{member.allocated_hours} hours</span>)
-                      {index < project.allocated_members.length - 1 && ', '}
                     </span>
                   ))
                 ) : (
