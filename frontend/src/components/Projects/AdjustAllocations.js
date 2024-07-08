@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import axios from 'axios';
 import apiConfig from '../../config/apiConfig';
+import { calculateEndDate } from '../../utils/dateUtils'; // Importa a função calculateEndDate
 import '../../App.css';
 
 const AdjustAllocations = () => {
   const location = useLocation();
   const history = useHistory();
   const [projectData, setProjectData] = useState(location.state.projectData || {});
-  const [endDate, setEndDate] = useState('');
 
-  const generateDates = (startDate, endDate) => {
+  const generateDates = useCallback((startDate, endDate) => {
     const dates = [];
     let currentDate = new Date(startDate);
     const end = new Date(endDate);
@@ -21,30 +21,30 @@ const AdjustAllocations = () => {
     }
 
     return dates;
-  };
+  }, []);
 
-  useEffect(() => {
-    if (projectData.start_date && projectData.end_date) {
-      const dates = generateDates(projectData.start_date, projectData.end_date);
-      // Atualiza o estado com as datas geradas
-      setProjectData(prevState => ({
-        ...prevState,
-        allocated_members: prevState.allocated_members.map(member => ({
-          ...member,
-          allocations: dates.map(date => ({
+  const initializeAllocations = useCallback((dates) => {
+    setProjectData(prevState => ({
+      ...prevState,
+      allocated_members: prevState.allocated_members.map(member => ({
+        ...member,
+        allocations: dates.map(date => {
+          const existingAllocation = member.allocations?.find(allocation => allocation.date === date);
+          return {
             date,
-            allocated_hours: member.allocations.find(a => a.date === date)?.allocated_hours || 0
-          }))
-        }))
-      }));
-    }
-  }, [projectData.start_date, projectData.end_date]);
+            allocated_hours: existingAllocation ? existingAllocation.allocated_hours : 8
+          };
+        })
+      }))
+    }));
+  }, []);
 
   useEffect(() => {
-    if (projectData.end_date) {
-      setEndDate(projectData.end_date);
+    const dates = generateDates(projectData.start_date, projectData.end_date);
+    if (projectData.start_date && projectData.end_date && projectData.allocated_members.length > 0) {
+      initializeAllocations(dates);
     }
-  }, [projectData.end_date]);
+  }, [projectData.start_date, projectData.end_date, projectData.allocated_members, generateDates, initializeAllocations]);
 
   const handleMemberHoursChange = (e, memberId, date) => {
     const { value } = e.target;
@@ -58,6 +58,12 @@ const AdjustAllocations = () => {
           )
         } : member
       )
+    }));
+
+    const newEndDate = calculateEndDate(projectData.start_date, projectData.remaining_work, projectData.allocated_members);
+    setProjectData(prevState => ({
+      ...prevState,
+      end_date: newEndDate.toISOString().split('T')[0]
     }));
   };
 
@@ -86,35 +92,36 @@ const AdjustAllocations = () => {
   return (
     <div className="container">
       <h2>Adjust Allocations</h2>
-      {endDate && (
-        <p>End Date: {endDate}</p>
-      )}
       <form className="form" onSubmit={handleSubmit}>
-        {projectData.allocated_members && projectData.allocated_members.length > 0 ? (
-          projectData.allocated_members.flatMap(member =>
-            member.allocations.map(allocation => ({
-              member,
-              allocation
-            }))
-          ).map(({ member, allocation }) => (
-            <div key={`${member.member_id}-${allocation.date}`}>
-              <h3>{allocation.date}</h3>
-              <label>
-                {member.name}:
-                <input
-                  type="number"
-                  value={allocation.allocated_hours}
-                  onChange={(e) => handleMemberHoursChange(e, member.member_id, allocation.date)}
-                  className="input"
-                  min="0"
-                  max="8"
-                />
-              </label>
-            </div>
-          ))
-        ) : (
-          <p>No allocations to display.</p>
-        )}
+        <label className="label">
+          End Date:
+          <input
+            type="text"
+            value={projectData.end_date}
+            readOnly
+            className="input"
+          />
+        </label>
+        {projectData.allocated_members && projectData.allocated_members.map(member => (
+          <div key={member.member_id}>
+            <h3>{member.name}</h3>
+            {member.allocations.map(allocation => (
+              <div key={allocation.date}>
+                <label>
+                  {allocation.date}:
+                  <input
+                    type="number"
+                    value={allocation.allocated_hours}
+                    onChange={(e) => handleMemberHoursChange(e, member.member_id, allocation.date)}
+                    className="input"
+                    min="0"
+                    max="8"
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+        ))}
         <button type="submit" className="button">Save Project</button>
       </form>
     </div>
