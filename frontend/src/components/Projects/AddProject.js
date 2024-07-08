@@ -27,7 +27,6 @@ const AddProject = () => {
         console.error('Error fetching team members:', error);
       }
     };
-
     fetchTeamMembers();
   }, []);
 
@@ -75,7 +74,7 @@ const AddProject = () => {
     if (projectData.end_date) {
       history.push('/adjust-allocations', { projectData });
     }
-  }, [projectData.end_date, history]);
+  }, [projectData.end_date, history, projectData]);
 
   return (
     <div className="container">
