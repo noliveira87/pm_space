@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useHistory } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import apiConfig from '../../config/apiConfig';
-import { calculateEndDate } from '../../utils/dateUtils'; // Importa a função calculateEndDate
+import { calculateEndDate } from '../../utils/dateUtils';
 import '../../App.css';
 
 const AdjustAllocations = () => {
@@ -10,59 +10,28 @@ const AdjustAllocations = () => {
   const history = useHistory();
   const [projectData, setProjectData] = useState(location.state.projectData || {});
 
-  const generateDates = useCallback((startDate, endDate) => {
-    const dates = [];
-    let currentDate = new Date(startDate);
-    const end = new Date(endDate);
-
-    while (currentDate <= end) {
-      dates.push(currentDate.toISOString().split('T')[0]);
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    return dates;
-  }, []);
-
-  const initializeAllocations = useCallback((dates) => {
-    setProjectData(prevState => ({
-      ...prevState,
-      allocated_members: prevState.allocated_members.map(member => ({
-        ...member,
-        allocations: dates.map(date => {
-          const existingAllocation = member.allocations?.find(allocation => allocation.date === date);
-          return {
-            date,
-            allocated_hours: existingAllocation ? existingAllocation.allocated_hours : 8
-          };
-        })
-      }))
-    }));
-  }, []);
-
   useEffect(() => {
-    const dates = generateDates(projectData.start_date, projectData.end_date);
-    if (projectData.start_date && projectData.end_date && projectData.allocated_members.length > 0) {
-      initializeAllocations(dates);
+    if (!projectData.start_date || !projectData.end_date || projectData.allocated_members.length === 0) {
+      // Redireciona de volta para a página de adicionar projeto se os dados necessários não estiverem presentes
+      history.push('/add-project');
     }
-  }, [projectData.start_date, projectData.end_date, projectData.allocated_members, generateDates, initializeAllocations]);
+  }, [projectData.start_date, projectData.end_date, projectData.allocated_members, history]);
 
-  const handleMemberHoursChange = (e, memberId, date) => {
-    const { value } = e.target;
+  const handleMemberHoursChange = (memberId, date, newValue) => {
+    const updatedMembers = projectData.allocated_members.map(member =>
+      member.member_id === memberId ? {
+        ...member,
+        allocations: member.allocations.map(allocation =>
+          allocation.date === date ? { ...allocation, allocated_hours: newValue } : allocation
+        )
+      } : member
+    );
+
+    const newEndDate = calculateEndDate(projectData.start_date, projectData.remaining_work, updatedMembers);
+
     setProjectData(prevState => ({
       ...prevState,
-      allocated_members: prevState.allocated_members.map(member =>
-        member.member_id === memberId ? {
-          ...member,
-          allocations: member.allocations.map(allocation =>
-            allocation.date === date ? { ...allocation, allocated_hours: parseInt(value, 10) } : allocation
-          )
-        } : member
-      )
-    }));
-
-    const newEndDate = calculateEndDate(projectData.start_date, projectData.remaining_work, projectData.allocated_members);
-    setProjectData(prevState => ({
-      ...prevState,
+      allocated_members: updatedMembers,
       end_date: newEndDate.toISOString().split('T')[0]
     }));
   };
@@ -112,7 +81,7 @@ const AdjustAllocations = () => {
                   <input
                     type="number"
                     value={allocation.allocated_hours}
-                    onChange={(e) => handleMemberHoursChange(e, member.member_id, allocation.date)}
+                    onChange={(e) => handleMemberHoursChange(member.member_id, allocation.date, parseInt(e.target.value, 10))}
                     className="input"
                     min="0"
                     max="8"
