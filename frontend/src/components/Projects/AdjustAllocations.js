@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
 import { calculateEndDate } from '../../utils/dateUtils';
 import apiConfig from '../../config/apiConfig';
 
@@ -8,7 +7,6 @@ const AdjustAllocations = (props) => {
   const { projectData } = props.location.state;
   const [allocatedMembers, setAllocatedMembers] = useState(projectData.allocated_members);
   const [teamMembers, setTeamMembers] = useState([]);
-  const history = useHistory();
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -61,8 +59,9 @@ const AdjustAllocations = (props) => {
 
   const handleSaveAllocations = async () => {
     try {
-      await axios.put(`${apiConfig.baseUrl}${apiConfig.endpoints.updateAllocations}`, { allocatedMembers });
-      history.push('/project-details');
+      const url = `${apiConfig.baseUrl}${apiConfig.endpoints.projectAllocations(projectData.id)}`;
+      await axios.put(url, { allocatedMembers });
+      console.log('Allocations saved successfully!');
     } catch (error) {
       console.error('Error saving allocations:', error);
       alert('Failed to save allocations. Please try again later.');
@@ -75,6 +74,7 @@ const AdjustAllocations = (props) => {
   return (
     <div className="container">
       <h2>Adjust Allocations</h2>
+      <p><strong>Project Start Date:</strong> {projectData.start_date}</p>
       <p><strong>Project End Date:</strong> {endDate.toISOString().split('T')[0]}</p>
       <div className="allocation-table">
         <table>
@@ -97,7 +97,7 @@ const AdjustAllocations = (props) => {
                       <input
                         type="number"
                         value={allocation ? allocation.allocated_hours : ''}
-                        min="1"
+                        min="0"
                         max="8"
                         onChange={(e) => handleAllocationChange(member.member_id, date, e.target.value)}
                       />

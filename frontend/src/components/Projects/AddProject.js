@@ -7,6 +7,7 @@ import '../../App.css';
 
 const AddProject = () => {
   const [projectData, setProjectData] = useState({
+    id: '',
     name: '',
     start_date: '',
     end_date: '',
@@ -72,6 +73,7 @@ const AddProject = () => {
 
   useEffect(() => {
     if (projectData.end_date) {
+      console.log('projectData:', projectData);
       history.push('/adjust-allocations', { projectData });
     }
   }, [projectData.end_date, history, projectData]);
