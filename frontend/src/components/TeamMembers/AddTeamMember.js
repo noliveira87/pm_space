@@ -3,18 +3,26 @@ import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import apiConfig from '../../config/apiConfig';
 import '../../App.css';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 
 const AddTeamMember = () => {
   const history = useHistory();
   const [memberData, setMemberData] = useState({
     name: '',
     role: '',
-    vacation_days: ''
+    vacation_days: null // Inicialize como null para indicar que nenhum dia foi selecionado
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setMemberData({ ...memberData, [name]: value });
+  };
+
+  const handleCalendarChange = (value) => {
+    // Se selectRange estiver habilitado no Calendar, value será um array de Date
+    // Caso contrário, será um único Date
+    setMemberData({ ...memberData, vacation_days: value });
   };
 
   const handleSubmit = async (e) => {
@@ -57,13 +65,10 @@ const AddTeamMember = () => {
         </label>
         <label className="label">
           Vacation Days:
-          <input
-            type="number"
-            name="vacation_days"
+          <Calendar
+            onChange={handleCalendarChange}
             value={memberData.vacation_days}
-            onChange={handleChange}
-            required
-            className="input"
+            selectRange={true} // Permitir seleção de intervalo de datas, se necessário
           />
         </label>
         <button type="submit" className="button">Add Member</button>

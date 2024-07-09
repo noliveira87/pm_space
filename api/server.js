@@ -196,9 +196,12 @@ app.get('/team_members/:id', async (req, res) => {
 app.post('/team_members', async (req, res) => {
   const { name, role, vacation_days } = req.body;
   try {
-    const result = await db.query(
+    // Converta os dias de férias para um formato que possa ser armazenado no banco de dados
+    const vacationDaysFormatted = vacation_days.map(day => new Date(day));
+
+    const result = await pool.query(
       'INSERT INTO team_members (name, role, vacation_days) VALUES ($1, $2, $3) RETURNING id',
-      [name, role, vacation_days]
+      [name, role, vacationDaysFormatted]
     );
     res.status(201).json({ id: result.rows[0].id });
   } catch (err) {
