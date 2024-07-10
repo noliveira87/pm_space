@@ -196,19 +196,30 @@ app.get('/team_members/:id', async (req, res) => {
 app.post('/team_members', async (req, res) => {
   const { name, role, vacation_days } = req.body;
   try {
-    // Converta os dias de férias para um formato que possa ser armazenado no banco de dados
-    const vacationDaysFormatted = vacation_days.map(day => new Date(day));
+    // Se vacation_days for null ou uma array vazia, defina como 0
+    const vacationDaysFormatted = vacation_days && vacation_days.length > 0 
+      ? vacation_days.map(day => formatDate(new Date(day))) 
+      : 0;
 
-    const result = await pool.query(
+    const result = await db.query(
       'INSERT INTO team_members (name, role, vacation_days) VALUES ($1, $2, $3) RETURNING id',
       [name, role, vacationDaysFormatted]
     );
+
     res.status(201).json({ id: result.rows[0].id });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+// Função para formatar a data para YYYY-MM-DD
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const day = ('0' + date.getDate()).slice(-2);
+  return `${year}-${month}-${day}`;
+}
 
 app.put('/team_members/:id', async (req, res) => {
   const memberId = req.params.id;

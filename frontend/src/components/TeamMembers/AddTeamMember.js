@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
-import apiConfig from '../../config/apiConfig';
-import '../../App.css';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import apiConfig from '../../config/apiConfig';
+import '../../App.css';
 
 const AddTeamMember = () => {
   const history = useHistory();
   const [memberData, setMemberData] = useState({
     name: '',
     role: '',
-    vacation_days: null // Inicialize como null para indicar que nenhum dia foi selecionado
+    vacation_days: [] // Inicialize como uma array vazia
   });
 
   const handleChange = (e) => {
@@ -20,15 +20,33 @@ const AddTeamMember = () => {
   };
 
   const handleCalendarChange = (value) => {
-    // Se selectRange estiver habilitado no Calendar, value será um array de Date
-    // Caso contrário, será um único Date
-    setMemberData({ ...memberData, vacation_days: value });
+    if (Array.isArray(value) && value.length > 0) {
+      setMemberData({ ...memberData, vacation_days: value });
+    } else if (value instanceof Date) {
+      setMemberData({ ...memberData, vacation_days: [value] });
+    } else {
+      setMemberData({ ...memberData, vacation_days: [] });
+    }
+  };
+
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${apiConfig.baseUrl}${apiConfig.endpoints.teamMembers}`, memberData);
+      const formattedData = {
+        ...memberData,
+        vacation_days: memberData.vacation_days.length > 0 
+          ? memberData.vacation_days.map(day => formatDate(day)) 
+          : null // Enviar null se não houver dias de férias
+      };
+      const response = await axios.post(`${apiConfig.baseUrl}/team_members`, formattedData);
+      console.log('Response:', response.data);
       alert('Team member added successfully!');
       history.push('/');
     } catch (error) {
@@ -67,7 +85,7 @@ const AddTeamMember = () => {
           Vacation Days:
           <Calendar
             onChange={handleCalendarChange}
-            value={memberData.vacation_days}
+            value={memberData.vacation_days.length > 0 ? memberData.vacation_days : null}
             selectRange={true} // Permitir seleção de intervalo de datas, se necessário
           />
         </label>
